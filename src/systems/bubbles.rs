@@ -1,2 +1,2 @@
 pub mod spawning;
-pub mod movement;
+pub mod combat;

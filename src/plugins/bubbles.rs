@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::resources::bubbles::*;
 use crate::systems::bubbles::spawning::*;
-use crate::systems::bubbles::movement::*;
+use crate::systems::bubbles::combat::*;
 
 pub struct BubblesPlugin;
 
@@ -13,7 +13,7 @@ impl Plugin for BubblesPlugin {
             .init_resource::<BubbleSpawnTimer>()
             .add_systems(Startup, init_bubble_spawner)
             .add_systems(Update, spawn_bubbles)
-            .add_systems(Update, move_bubbles);
+            .add_systems(Update, bubble_clicked);
     }
 
 }
