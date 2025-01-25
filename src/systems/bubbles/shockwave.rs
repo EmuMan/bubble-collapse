@@ -17,7 +17,7 @@ pub fn spawn_shockwaves(
             mesh: Mesh2d(meshes.add(Circle::new(event.radius))),
             mesh_material: MeshMaterial2d(materials.add(shockwave_color)),
             transform: Transform::from_translation(event.position.extend(0.0)),
-            bubble_shockwave: BubbleShockwave::new(event.radius, 250.0, 50.0, 1.0, true),
+            bubble_shockwave: BubbleShockwave::new(event.radius, 250.0, 250.0, 1.0, true),
             collider: Collider {
                 radius: event.radius,
                 ..Default::default()
