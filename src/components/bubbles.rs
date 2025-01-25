@@ -56,6 +56,15 @@ impl BubbleShockwave {
             let time = (self.radius - self.initial_radius) / (self.max_radius - self.initial_radius);
             self.strength = self.initial_strength * (1.0 - time);
         }
-        self.radius < self.max_radius
+        self.radius > self.max_radius
     }
+}
+
+#[derive(Bundle)]
+pub struct BubbleShockwaveBundle {
+    pub mesh: Mesh2d,
+    pub mesh_material: MeshMaterial2d<ColorMaterial>,
+    pub transform: Transform,
+    pub bubble_shockwave: BubbleShockwave,
+    pub collider: Collider,
 }

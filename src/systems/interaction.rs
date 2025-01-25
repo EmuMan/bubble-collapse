@@ -8,8 +8,10 @@ pub fn handle_mouse_click(
     window_query: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
 ) {
-    let window = window_query.single();
-    let (camera, camera_transform) = camera_query.single();
+    let (Ok(window), Ok((camera, camera_transform))) =
+        (window_query.get_single(), camera_query.get_single()) else {
+        return;
+    };
     if mouse_input.just_pressed(MouseButton::Left) {
         if let Some(window_pos) = window.cursor_position() {
             let world_pos = camera.viewport_to_world_2d(camera_transform, window_pos);
