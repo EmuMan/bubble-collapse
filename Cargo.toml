@@ -6,6 +6,8 @@ edition = "2021"
 [dependencies]
 bevy = "0.15.1"
 bevy_egui = "0.32.0"
+rand_core = "0.6"
+bevy_rand = { version = "0.8", features = ["rand_chacha", "wyrand"] }
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

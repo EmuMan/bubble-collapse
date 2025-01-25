@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+
 use crate::resources::stats::*;
 
 pub struct StatsPlugin;
