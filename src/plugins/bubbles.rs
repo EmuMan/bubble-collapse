@@ -22,13 +22,16 @@ impl Plugin for BubblesPlugin {
             .add_systems(Update, spawn_shockwaves)
             .add_systems(Update, expand_shockwaves)
             .add_systems(Update, wobble_black_holes)
+            .add_systems(Update, spawn_scatter_shot_shockwaves)
+            .add_systems(Update, expand_beam)
             .add_systems(Update, bubble_hit_by_shockwave)
             .add_systems(Update, bubble_in_black_hole)
-            .add_systems(Update, spawn_scatter_shot_shockwaves)
+            .add_systems(Update, bubble_hit_by_beam)
             .add_systems(Update, advance_bubble_collapse
                 .after(bubble_clicked)
                 .after(bubble_hit_by_shockwave)
-                .after(wobble_black_holes));
+                .after(bubble_in_black_hole)
+                .after(bubble_hit_by_beam));
     }
 
 }

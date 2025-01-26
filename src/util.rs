@@ -58,20 +58,32 @@ pub fn continuous_circle_collision(
     pos2: Vec2, vel2: Vec2, radius2: f32,
     delta_time: f32
 ) -> bool {
-    // change frame of reference to account for velocities
-    let vel1 = vel1 - vel2;
+    circle_close_to_line(
+        pos2,
+        radius2,
+        pos1,
+        // Change frame of reference to pos1
+        pos1 + (vel1 - vel2) * delta_time,
+        radius1 * 2.0,
+        true
+    )
+}
 
+pub fn circle_close_to_line(
+    circle_pos: Vec2, circle_radius: f32,
+    line_start: Vec2, line_end: Vec2,
+    line_width: f32, constrain: bool,
+) -> bool {
     // find the closest point on the line representing the path of the first circle
-    let d = closest_point_on_line_segment(pos1, pos1 + vel1 * delta_time, pos2);
+    let d = closest_point_on_line(line_start, line_end, circle_pos, constrain);
 
-    // check if the closest point is inside the circle
-    let closest_dist_sq = (pos2.x - d.x).powi(2) + (pos2.y - d.y).powi(2);
-    let sum_radii = radius1 + radius2;
+    let closest_dist_sq = circle_pos.distance_squared(d);
+    let sum_radii = circle_radius + line_width / 2.0;
 
     closest_dist_sq < sum_radii.powi(2)
 }
 
-pub fn closest_point_on_line_segment(l1: Vec2, l2: Vec2, p: Vec2) -> Vec2 {
+pub fn closest_point_on_line(l1: Vec2, l2: Vec2, p: Vec2, constrain_to_segment: bool) -> Vec2 {
     // Direction vector of the segment
     let segment = l2 - l1;
 
@@ -87,7 +99,7 @@ pub fn closest_point_on_line_segment(l1: Vec2, l2: Vec2, p: Vec2) -> Vec2 {
     let t = (p - l1).dot(segment) / segment_length_squared;
 
     // Confine t to the line segment
-    let t = t.clamp(0.0, 1.0);
+    let t = if constrain_to_segment { t.clamp(0.0, 1.0) } else { t };
 
     // Compute the closest point on the segment
     l1 + segment * t

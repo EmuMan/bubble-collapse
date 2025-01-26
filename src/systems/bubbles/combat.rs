@@ -18,7 +18,7 @@ pub fn advance_bubble_collapse(
         if bubble.state == BubbleState::Popped {
             match bubble.update_collapse(&time.delta()) {
                 Some(progress) => {
-                    let new_radius = bubble.initial_radius * progress.powf(0.33);
+                    let new_radius = bubble.initial_radius * (1.0 - progress).powf(0.33);
                     bubble.radius = new_radius;
                     collider.radius = new_radius;
                     meshes.insert(mesh, Circle::new(new_radius).into());
@@ -108,9 +108,32 @@ pub fn bubble_in_black_hole(
                 let distance = direction.length();
                 let force = (black_hole.strength / distance).min(black_hole.max_pull);
                 bubble_velocity.velocity += direction.normalize() * force;
-                if distance < black_hole.max_radius / 10.0 {
+                if distance < black_hole.max_radius / 5.0 {
                     bubble.collapse();
                 }
+            }
+        }
+    }
+}
+
+pub fn bubble_hit_by_beam(
+    mut beam_query: Query<(&Transform, &BubbleBeam)>,
+    mut bubble_query: Query<(&Transform, &Collider, &mut Bubble)>,
+) {
+    for (beam_transform, beam) in beam_query.iter_mut() {
+        for (bubble_transform, bubble_collider, mut bubble) in bubble_query.iter_mut() {
+            if bubble.state == BubbleState::Popped {
+                continue;
+            }
+            if util::circle_close_to_line(
+                bubble_transform.translation.truncate(),
+                bubble_collider.radius,
+                beam_transform.translation.truncate(),
+                beam_transform.translation.truncate() + Vec2::Y,
+                beam.width,
+                false,
+            ) {
+                bubble.collapse();
             }
         }
     }

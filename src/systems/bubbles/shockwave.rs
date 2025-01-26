@@ -45,7 +45,16 @@ pub fn spawn_shockwaves(
                     event.color,
                 );
             }
-            BubbleType::Beam => {}
+            BubbleType::Beam => {
+                spawn_beam(
+                    &mut commands,
+                    &mut meshes,
+                    &mut materials,
+                    event.position,
+                    50.0,
+                    event.color,
+                )
+            }
             BubbleType::BlackHole => {
                 spawn_black_hole(
                     &mut commands,
@@ -150,6 +159,25 @@ fn spawn_scatter_shot(
     });
 }
 
+fn spawn_beam(
+    commands: &mut Commands,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<ColorMaterial>,
+    position: Vec2,
+    width: f32,
+    color: Color,
+) {
+    let mut beam_color = color.clone();
+    beam_color.set_alpha(0.5);
+
+    commands.spawn(BubbleBeamBundle {
+        mesh: Mesh2d(meshes.add(Rectangle::new(0.0, 1_000.0))),
+        mesh_material: MeshMaterial2d(materials.add(beam_color)),
+        beam: BubbleBeam::new(width, 1.0),
+        transform: Transform::from_translation(position.extend(0.0)),
+    });
+}
+
 pub fn expand_shockwaves(
     mut commands: Commands,
     time: Res<Time>,
@@ -162,7 +190,7 @@ pub fn expand_shockwaves(
             collider.radius = shockwave.radius;
             meshes.insert(mesh, Circle::new(shockwave.radius).into());
             materials.get_mut(material).map(|mat| {
-                mat.color.set_alpha((1.0 - shockwave_time).powf(0.5) * 0.3);
+                mat.color.set_alpha(shockwave_time.powf(0.5) * 0.3);
             });
         } else {
             commands.entity(entity).despawn();
@@ -215,6 +243,21 @@ pub fn spawn_scatter_shot_shockwaves(
                     },
                 });
             }
+        } else {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
+pub fn expand_beam(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut beam_query: Query<(Entity, &mut BubbleBeam, &Mesh2d)>,
+) {
+    for (entity, mut beam, mesh) in beam_query.iter_mut() {
+        if beam.tick(&time.delta()).is_some() {
+            meshes.insert(mesh, Rectangle::new(beam.width, 3_000.0).into());
         } else {
             commands.entity(entity).despawn();
         }

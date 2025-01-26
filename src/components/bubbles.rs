@@ -37,7 +37,7 @@ impl Bubble {
         if self.collapse_timer.finished() {
             return None;
         }
-        Some(self.collapse_timer.remaining_secs() / self.collapse_timer.duration().as_secs_f32())
+        Some(self.collapse_timer.elapsed_secs() / self.collapse_timer.duration().as_secs_f32())
     }
 }
 
@@ -103,7 +103,7 @@ impl BubbleBundle {
             BubbleType::Normal => (10.0, Color::WHITE, 0.0),
             BubbleType::Mega => (30.0, Color::linear_rgb(1.0, 0.0, 0.0), 1.0),
             BubbleType::ScatterShot => (20.0, Color::linear_rgb(0.0, 1.0, 0.0), 0.5),
-            BubbleType::Beam => (15.0, Color::linear_rgb(0.0, 0.0, 1.0), 0.5),
+            BubbleType::Beam => (15.0, Color::linear_rgb(1.0, 1.0, 0.0), 0.5),
             BubbleType::BlackHole => (10.0, Color::BLACK, 2.0),
         };
         BubbleBundle::new(
@@ -194,7 +194,7 @@ impl BubbleBlackHole {
             return None;
         }
 
-        let time = self.timer.remaining_secs() / self.timer.duration().as_secs_f32();
+        let time = self.timer.elapsed_secs() / self.timer.duration().as_secs_f32();
         
         {
             let up_n_down_bit = -1.0 * (time * 2.34 - 1.17).powi(10) + 5.0;
@@ -202,7 +202,7 @@ impl BubbleBlackHole {
             self.radius = self.max_radius * (up_n_down_bit + wobbly_bit) / 6.0;
         }
 
-        Some(self.timer.remaining_secs() / self.timer.duration().as_secs_f32())
+        Some(time)
     }
 }
 
@@ -258,5 +258,45 @@ impl BubbleScatterShotSpawner {
 #[derive(Bundle)]
 pub struct BubbleScatterShotSpawnerBundle {
     pub spawner: BubbleScatterShotSpawner,
+    pub transform: Transform,
+}
+
+#[derive(Component, Debug, Default)]
+pub struct BubbleBeam {
+    pub width: f32,
+    initial_width: f32,
+    pub duration: f32,
+    timer: Timer,
+}
+
+impl BubbleBeam {
+    pub fn new(width: f32, duration: f32) -> Self {
+        Self {
+            width,
+            initial_width: width,
+            duration,
+            timer: Timer::from_seconds(duration, TimerMode::Once),
+        }
+    }
+
+    pub fn tick(&mut self, time: &Duration) -> Option<f32> {
+        self.timer.tick(*time);
+        if self.timer.finished() {
+            return None;
+        }
+
+        let time = self.timer.elapsed_secs() / self.timer.duration().as_secs_f32();
+        let value = (4.0 * time).powi(2).min(-time + 1.0);
+        self.width = self.initial_width * value;
+
+        Some(time)
+    }
+}
+
+#[derive(Bundle)]
+pub struct BubbleBeamBundle {
+    pub mesh: Mesh2d,
+    pub mesh_material: MeshMaterial2d<ColorMaterial>,
+    pub beam: BubbleBeam,
     pub transform: Transform,
 }
