@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use bevy_egui::{egui, EguiContexts};
 
-use crate::resources::bubbles;
+use crate::{game_states::DebugState, resources::bubbles};
 
 pub fn ui_debug(
     mut contexts: EguiContexts,
@@ -14,4 +14,22 @@ pub fn ui_debug(
         let spawn_rate_label = ui.label("Spawn Rate");
         ui.add(egui::DragValue::new(&mut bubble_spawn_timer.action_timer.amount)).labelled_by(spawn_rate_label.id);
     });
+}
+
+pub fn toggle_debug_on_on_backslash(
+    mut debug_state: ResMut<NextState<DebugState>>,
+    input: Res<ButtonInput<KeyCode>>,
+) {
+    if input.just_pressed(KeyCode::Backslash) {
+        debug_state.set(DebugState::Debug);
+    }
+}
+
+pub fn toggle_debug_off_on_backslash(
+    mut debug_state: ResMut<NextState<DebugState>>,
+    input: Res<ButtonInput<KeyCode>>,
+) {
+    if input.just_pressed(KeyCode::Backslash) {
+        debug_state.set(DebugState::NoDebug);
+    }
 }

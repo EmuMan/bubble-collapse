@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::systems::ui::*;
-use crate::game_states::{DebugState, GameState};
+use crate::game_states::{DebugState, GameState, PausedState};
 
 pub struct UiPlugin;
 
@@ -11,11 +11,25 @@ impl Plugin for UiPlugin {
         app
             .add_systems(Update, debug::ui_debug
                 .run_if(in_state(DebugState::Debug)))
+            .add_systems(Update, debug::toggle_debug_on_on_backslash
+                .run_if(in_state(DebugState::NoDebug)))
+            .add_systems(Update, debug::toggle_debug_off_on_backslash
+                .run_if(in_state(DebugState::Debug)))
             .add_systems(OnEnter(GameState::MainMenu), main_menu::draw_main_menu)
             .add_systems(OnExit(GameState::MainMenu), main_menu::cleanup_main_menu)
             .add_systems(Update, (
                 main_menu::button_system,
-            ).run_if(in_state(GameState::MainMenu)));
+            ).run_if(in_state(GameState::MainMenu)))
+            .add_systems(OnEnter(PausedState::Paused), pause_menu::draw_pause_menu)
+            .add_systems(OnExit(PausedState::Paused), pause_menu::cleanup_pause_menu)
+            .add_systems(Update, (
+                pause_menu::button_system,
+            ).run_if(in_state(PausedState::Paused)))
+            .add_systems(Update, (
+                pause_menu::pause_game_on_esc.run_if(in_state(PausedState::Unpaused)),
+                pause_menu::unpause_game_on_esc.run_if(in_state(PausedState::Paused)),
+            ).run_if(in_state(GameState::InGame)))
+            .add_systems(OnExit(GameState::InGame), pause_menu::unpause_game);
     }
 
 }

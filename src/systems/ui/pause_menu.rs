@@ -1,15 +1,14 @@
 use bevy::prelude::*;
 
-use crate::{components::menu::MainMenuRoot, game_states::GameState, util};
+use crate::{components::menu::PauseMenuRoot, game_states::{GameState, PausedState}, util};
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum MainMenuAction {
-    Play,
-    Options,
-    Quit,
+pub enum PauseMenuAction {
+    Continue,
+    ReturnToMainMenu,
 }
 
-pub fn draw_main_menu(
+pub fn draw_pause_menu(
     mut commands: Commands,
 ) {
     let container = commands.spawn((
@@ -22,11 +21,11 @@ pub fn draw_main_menu(
             align_items: AlignItems::Center,
             ..default()
         },
-        MainMenuRoot,
+        PauseMenuRoot,
     )).id();
 
     let main_text = commands.spawn((
-        Text::new("Silly Little Game"),
+        Text::new("Paused"),
         TextFont {
             font_size: 70.0,
             ..default()
@@ -47,22 +46,22 @@ pub fn draw_main_menu(
         ..default()
     }).id();
 
-    let play_button = util::spawn_button_with_text(
-        &mut commands, "Play".into(), Val::Px(200.0), Val::Px(50.0), 25.0);
-    commands.entity(play_button).insert(MainMenuAction::Play);
+    let continue_button = util::spawn_button_with_text(
+        &mut commands, "Continue".into(), Val::Px(200.0), Val::Px(50.0), 25.0);
+    commands.entity(continue_button).insert(PauseMenuAction::Continue);
 
-    let quit_button = util::spawn_button_with_text(
-        &mut commands, "Quit".into(), Val::Px(200.0), Val::Px(50.0), 25.0);
-    commands.entity(quit_button).insert(MainMenuAction::Quit);
+    let main_menu_button = util::spawn_button_with_text(
+        &mut commands, "Main Menu".into(), Val::Px(200.0), Val::Px(50.0), 25.0);
+    commands.entity(main_menu_button).insert(PauseMenuAction::ReturnToMainMenu);
     
-    commands.entity(buttons_container).add_children(&[play_button, quit_button]);
+    commands.entity(buttons_container).add_children(&[continue_button, main_menu_button]);
 
     commands.entity(container).add_children(&[main_text, buttons_container]);
 }
 
-pub fn cleanup_main_menu(
+pub fn cleanup_pause_menu(
     mut commands: Commands,
-    query: Query<Entity, With<MainMenuRoot>>,
+    query: Query<Entity, With<PauseMenuRoot>>,
 ) {
     for entity in &query {
         commands.entity(entity).despawn_recursive();
@@ -71,10 +70,10 @@ pub fn cleanup_main_menu(
 
 pub fn button_system(
     mut next_game_state: ResMut<NextState<GameState>>,
-    mut app_exit: EventWriter<AppExit>,
+    mut next_paused_state: ResMut<NextState<PausedState>>,
     mut interaction_query: Query<
         (
-            &MainMenuAction,
+            &PauseMenuAction,
             &Interaction,
             &mut BorderColor,
         ),
@@ -85,7 +84,7 @@ pub fn button_system(
         match *interaction {
             Interaction::Pressed => {
                 border_color.0 = Color::srgb(0.3, 0.5, 0.8);
-                perform_action(&mut next_game_state, &mut app_exit, *action);
+                perform_action(&mut next_game_state, &mut next_paused_state, *action);
             }
             Interaction::Hovered => {
                 border_color.0 = Color::srgb(0.5, 0.7, 1.0);
@@ -99,16 +98,39 @@ pub fn button_system(
 
 fn perform_action(
     next_game_state: &mut NextState<GameState>,
-    exit: &mut EventWriter<AppExit>,
-    action: MainMenuAction,
+    next_paused_state: &mut NextState<PausedState>,
+    action: PauseMenuAction,
 ) {
     match action {
-        MainMenuAction::Play => {
-            next_game_state.set(GameState::InGame);
+        PauseMenuAction::Continue => {
+            next_paused_state.set(PausedState::Unpaused);
         }
-        MainMenuAction::Quit => {
-            exit.send(AppExit::Success);
+        PauseMenuAction::ReturnToMainMenu => {
+            next_game_state.set(GameState::MainMenu);
         }
-        _ => {}
     }
+}
+
+pub fn pause_game_on_esc(
+    mut paused_state: ResMut<NextState<PausedState>>,
+    keys: Res<ButtonInput<KeyCode>>,
+) {
+    if keys.just_pressed(KeyCode::Escape) {
+        paused_state.set(PausedState::Paused);
+    }
+}
+
+pub fn unpause_game_on_esc(
+    mut paused_state: ResMut<NextState<PausedState>>,
+    keys: Res<ButtonInput<KeyCode>>,
+) {
+    if keys.just_pressed(KeyCode::Escape) {
+        paused_state.set(PausedState::Unpaused);
+    }
+}
+
+pub fn unpause_game(
+    mut paused_state: ResMut<NextState<PausedState>>,
+) {
+    paused_state.set(PausedState::Unpaused);
 }
