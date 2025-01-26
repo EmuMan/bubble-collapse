@@ -7,10 +7,12 @@ use bevy_framepace::FramepacePlugin;
 
 use ggj2025::plugins::camera::CameraPlugin;
 use ggj2025::plugins::{
+    game_states::GameStatesPlugin,
     stats::StatsPlugin,
     bubbles::BubblesPlugin,
     physics::PhysicsPlugin,
     interaction::InteractionPlugin,
+    ui::UiPlugin,
 };
 
 fn main() {
@@ -21,6 +23,8 @@ fn main() {
         .add_plugins(EntropyPlugin::<WyRand>::default())
         .add_plugins(FramepacePlugin)
         .add_plugins(CameraPlugin)
+        .add_plugins(UiPlugin)
+        .add_plugins(GameStatesPlugin)
         .add_plugins(StatsPlugin)
         .add_plugins(BubblesPlugin)
         .add_plugins(PhysicsPlugin)

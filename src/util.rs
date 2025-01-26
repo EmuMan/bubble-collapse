@@ -104,3 +104,44 @@ pub fn closest_point_on_line(l1: Vec2, l2: Vec2, p: Vec2, constrain_to_segment: 
     // Compute the closest point on the segment
     l1 + segment * t
 }
+
+pub fn spawn_button_with_text(
+    commands: &mut Commands,
+    text: String,
+    width: Val,
+    height: Val,
+    font_size: f32,
+) -> Entity {
+    let button_node = Node {
+        width,
+        height,
+        border: UiRect::all(Val::Px(3.0)),
+        justify_content: JustifyContent::Center,
+        align_items: AlignItems::Center,
+        ..default()
+    };
+
+    let button_text_node = Text::new(text);
+    let button_text_color = TextColor(Color::srgb(0.9, 0.9, 0.9));
+    let button_text_font = TextFont {
+        font_size,
+        ..default()
+    };
+
+    let button = commands.spawn((
+        Button,
+        button_node,
+        BorderColor(Color::WHITE),
+        BackgroundColor(Color::srgb(0.0, 0.0, 1.0)),
+    )).id();
+
+    let button_text = commands.spawn((
+        button_text_node,
+        button_text_color,
+        button_text_font
+    )).id();
+
+    commands.entity(button).add_children(&[button_text]);
+
+    button
+}

@@ -64,3 +64,18 @@ pub fn despawn_bubbles(
         }
     }
 }
+
+pub fn cleanup_everything(
+    mut commands: Commands,
+    query: Query<Entity, Or<(
+        With<Bubble>,
+        With<BubbleShockwave>,
+        With<BubbleBlackHole>,
+        With<BubbleBeam>,
+        With<BubbleScatterShotSpawner>,
+    )>>,
+) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn();
+    }
+}
