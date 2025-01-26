@@ -119,7 +119,7 @@ impl BubbleBundle {
     }
 }
 
-#[derive(Component, Default, Debug)]
+#[derive(Component, Default, Debug, Clone)]
 pub struct BubbleShockwave {
     initial_radius: f32,
     pub radius: f32,
@@ -157,7 +157,7 @@ impl BubbleShockwave {
     }
 }
 
-#[derive(Bundle)]
+#[derive(Bundle, Clone)]
 pub struct BubbleShockwaveBundle {
     pub mesh: Mesh2d,
     pub mesh_material: MeshMaterial2d<ColorMaterial>,
@@ -211,4 +211,60 @@ pub struct BubbleBlackHoleBundle {
     pub transform: Transform,
     pub bubble_black_hole: BubbleBlackHole,
     pub collider: Collider,
+}
+
+#[derive(Component)]
+pub struct BubbleScatterShotSpawner {
+    pub radius: f32,
+    pub variation: f32,
+    pub duration: f32,
+    pub count: u32,
+    pub instance: BubbleShockwave,
+    pub shockwave_color: Color,
+    pub shockwave_radius: f32,
+    timer: Timer,
+    spawned_so_far: u32,
+}
+
+impl BubbleScatterShotSpawner {
+    pub fn new(
+        radius: f32,
+        variation: f32,
+        duration: f32,
+        count: u32,
+        instance: BubbleShockwave,
+        shockwave_color: Color,
+        shockwave_radius: f32,
+    ) -> Self {
+        Self {
+            radius,
+            variation,
+            duration,
+            count,
+            instance,
+            shockwave_color,
+            shockwave_radius,
+            timer: Timer::from_seconds(duration, TimerMode::Once),
+            spawned_so_far: 0,
+        }
+    }
+
+    // returns how many new shockwaves to spawn
+    pub fn tick(&mut self, time: &Duration) -> Option<u32> {
+        self.timer.tick(*time);
+        if self.timer.finished() {
+            return None;
+        }
+
+        let percent_done = self.timer.elapsed_secs() / self.duration;
+        let new_shockwaves = (percent_done * self.count as f32) as u32 - self.spawned_so_far;
+        self.spawned_so_far += new_shockwaves;
+        Some(new_shockwaves)
+    }
+}
+
+#[derive(Bundle)]
+pub struct BubbleScatterShotSpawnerBundle {
+    pub spawner: BubbleScatterShotSpawner,
+    pub transform: Transform,
 }

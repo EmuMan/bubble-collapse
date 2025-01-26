@@ -23,7 +23,7 @@ pub fn spawn_bubbles(
     spawn_timer.timer.tick(time.delta());
 
     if spawn_timer.timer.just_finished() {
-        let x_pos = rng.next_u32() as f32 / 500.0 % 800.0 - 400.0;
+        let x_pos = rng.next_u32() as f32 / 500.0 % 2000.0 - 1000.0;
         let y_vel = rng.next_u32() as f32 % 100.0 + 50.0;
         let bubble_type = match rng.next_u32() % 300 {
             0 => BubbleType::Mega,
@@ -40,5 +40,16 @@ pub fn spawn_bubbles(
             Vec2::new(x_pos, -400.0),
             Vec2::new(0.0, y_vel),
         ));
+    }
+}
+
+pub fn despawn_bubbles(
+    mut commands: Commands,
+    bubble_query: Query<(Entity, &Transform), With<Bubble>>,
+) {
+    for (entity, transform) in bubble_query.iter() {
+        if transform.translation.y > 400.0 {
+            commands.entity(entity).despawn();
+        }
     }
 }
