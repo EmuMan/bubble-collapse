@@ -54,3 +54,9 @@ pub struct BubbleDestroyedEvent {
     pub color: Color,
     pub bubble_type: BubbleType,
 }
+
+#[derive(Event, Debug, Default)]
+pub struct BubbleCollapsedEvent {
+    pub triggered_by_user: bool,
+    pub score_change: i32,
+}

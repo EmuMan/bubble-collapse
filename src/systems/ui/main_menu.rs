@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{components::menu::MainMenuRoot, game_states::GameState, util};
+use crate::{components::ui::MainMenuRoot, game_states::GameState, util};
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum MainMenuAction {

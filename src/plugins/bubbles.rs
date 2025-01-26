@@ -17,6 +17,7 @@ impl Plugin for BubblesPlugin {
             .init_resource::<BubbleSpawnTimer>()
             .init_resource::<BubbleChances>()
             .add_event::<BubbleDestroyedEvent>()
+            .add_event::<BubbleCollapsedEvent>()
             .add_systems(OnEnter(GameState::InGame), init_bubble_spawner)
             .add_systems(OnExit(GameState::InGame), cleanup_everything)
             .add_systems(Update, (

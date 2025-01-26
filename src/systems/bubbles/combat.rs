@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+use crate::resources::bubbles::BubbleCollapsedEvent;
 use crate::resources::bubbles::BubbleDestroyedEvent;
 use crate::resources::interaction::*;
 use crate::components::physics::*;
@@ -39,6 +40,7 @@ pub fn advance_bubble_collapse(
 
 pub fn bubble_clicked(
     mut mouse_click_events: EventReader<MouseClickEvent>,
+    mut collapse_event: EventWriter<BubbleCollapsedEvent>,
     mut bubble_query: Query<(&Transform, &Collider, &mut Bubble)>,
 ) {
     for event in mouse_click_events.read() {
@@ -48,6 +50,10 @@ pub fn bubble_clicked(
             }
             if collider.is_point_inside(transform.translation.truncate(), event.position) {
                 bubble.collapse();
+                collapse_event.send(BubbleCollapsedEvent {
+                    triggered_by_user: true,
+                    score_change: 0,
+                });
             }
         }
     }
@@ -55,6 +61,7 @@ pub fn bubble_clicked(
 
 pub fn bubble_hit_by_shockwave(
     time: Res<Time>,
+    mut collapse_event: EventWriter<BubbleCollapsedEvent>,
     mut shockwave_query: Query<(&Transform, &Collider), With<BubbleShockwave>>,
     mut bubble_query: Query<(&Transform, &Collider, &Velocity, &mut Bubble)>,
 ) {
@@ -78,6 +85,10 @@ pub fn bubble_hit_by_shockwave(
                 time.delta().as_secs_f32(),
             ) {
                 bubble.collapse();
+                collapse_event.send(BubbleCollapsedEvent {
+                    triggered_by_user: false,
+                    score_change: 1,
+                });
             }
         }
     }
@@ -85,6 +96,7 @@ pub fn bubble_hit_by_shockwave(
 
 pub fn bubble_in_black_hole(
     time: Res<Time>,
+    mut collapse_event: EventWriter<BubbleCollapsedEvent>,
     mut black_hole_query: Query<(&Transform, &Collider, &BubbleBlackHole)>,
     mut bubble_query: Query<(&Transform, &Collider, &mut Velocity, &mut Bubble)>,
 ) {
@@ -110,6 +122,10 @@ pub fn bubble_in_black_hole(
                 bubble_velocity.velocity += direction.normalize() * force;
                 if distance < black_hole.max_radius / 5.0 {
                     bubble.collapse();
+                    collapse_event.send(BubbleCollapsedEvent {
+                        triggered_by_user: false,
+                        score_change: 1,
+                    });
                 }
             }
         }
@@ -117,6 +133,7 @@ pub fn bubble_in_black_hole(
 }
 
 pub fn bubble_hit_by_beam(
+    mut collapse_event: EventWriter<BubbleCollapsedEvent>,
     mut beam_query: Query<(&Transform, &BubbleBeam)>,
     mut bubble_query: Query<(&Transform, &Collider, &mut Bubble)>,
 ) {
@@ -134,6 +151,10 @@ pub fn bubble_hit_by_beam(
                 false,
             ) {
                 bubble.collapse();
+                collapse_event.send(BubbleCollapsedEvent {
+                    triggered_by_user: false,
+                    score_change: 1,
+                });
             }
         }
     }

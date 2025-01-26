@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{components::menu::PauseMenuRoot, game_states::{GameState, PausedState}, util};
+use crate::{components::ui::PauseMenuRoot, game_states::{GameState, PausedState}, util};
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PauseMenuAction {

@@ -21,11 +21,11 @@ pub fn init_bubble_spawner(
         ),
     });
 
-    bubble_chances.set_chance(BubbleType::Normal, 0.0);
+    bubble_chances.set_chance(BubbleType::Normal, 20.0);
     bubble_chances.set_chance(BubbleType::Mega, 0.0);
     bubble_chances.set_chance(BubbleType::ScatterShot, 0.0);
     bubble_chances.set_chance(BubbleType::BlackHole, 0.0);
-    bubble_chances.set_chance(BubbleType::Beam, 1.0);
+    bubble_chances.set_chance(BubbleType::Beam, 0.0);
 }
 
 pub fn spawn_bubbles(
