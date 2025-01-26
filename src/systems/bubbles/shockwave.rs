@@ -11,20 +11,76 @@ pub fn spawn_shockwaves(
     mut bubble_destroyed_event: EventReader<BubbleDestroyedEvent>,
 ) {
     for event in bubble_destroyed_event.read() {
-        let mut shockwave_color = event.color.clone();
-        shockwave_color.set_alpha(0.3);
-        let material = materials.add(shockwave_color);
-        commands.spawn(BubbleShockwaveBundle {
-            mesh: Mesh2d(meshes.add(Circle::new(event.radius))),
-            mesh_material: MeshMaterial2d(material),
-            transform: Transform::from_translation(event.position.extend(0.0)),
-            bubble_shockwave: BubbleShockwave::new(event.radius, 250.0, 250.0, 1.0, true),
-            collider: Collider {
-                radius: event.radius,
-                ..Default::default()
-            },
-        });
+        match event.bubble_type {
+            BubbleType::Normal => {
+                spawn_normal_shockwave(
+                    &mut commands,
+                    &mut meshes,
+                    &mut materials,
+                    event.position,
+                    event.radius,
+                    event.color,
+                );
+            }
+            BubbleType::Mega => {
+                spawn_mega_shockwave(
+                    &mut commands,
+                    &mut meshes,
+                    &mut materials,
+                    event.position,
+                    event.radius,
+                    event.color,
+                );
+            }
+            BubbleType::ScatterShot => {}
+            BubbleType::Beam => {}
+            BubbleType::BlackHole => {}
+        }
     }
+}
+
+fn spawn_normal_shockwave(
+    commands: &mut Commands,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<ColorMaterial>,
+    position: Vec2,
+    radius: f32,
+    color: Color,
+) {
+    let mut shockwave_color = color.clone();
+    shockwave_color.set_alpha(0.3);
+    commands.spawn(BubbleShockwaveBundle {
+        mesh: Mesh2d(meshes.add(Circle::new(radius))),
+        mesh_material: MeshMaterial2d(materials.add(shockwave_color)),
+        transform: Transform::from_translation(position.extend(0.0)),
+        bubble_shockwave: BubbleShockwave::new(radius, 250.0, 50.0, 1.0, true),
+        collider: Collider {
+            radius,
+            ..Default::default()
+        },
+    });
+}
+
+fn spawn_mega_shockwave(
+    commands: &mut Commands,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<ColorMaterial>,
+    position: Vec2,
+    radius: f32,
+    color: Color,
+) {
+    let mut shockwave_color = color.clone();
+    shockwave_color.set_alpha(0.5);
+    commands.spawn(BubbleShockwaveBundle {
+        mesh: Mesh2d(meshes.add(Circle::new(radius))),
+        mesh_material: MeshMaterial2d(materials.add(shockwave_color)),
+        transform: Transform::from_translation(position.extend(0.0)),
+        bubble_shockwave: BubbleShockwave::new(radius, 500.0, 750.0, 100.0, true),
+        collider: Collider {
+            radius,
+            ..Default::default()
+        },
+    });
 }
 
 pub fn expand_shockwaves(

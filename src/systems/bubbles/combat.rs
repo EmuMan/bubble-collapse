@@ -29,6 +29,7 @@ pub fn advance_bubble_collapse(
                         position: transform.translation.truncate(),
                         radius: collider.radius,
                         color: materials.get(material).map(|mat| mat.color).unwrap_or(Color::WHITE),
+                        bubble_type: bubble.bubble_type,
                     });
                 }
             }

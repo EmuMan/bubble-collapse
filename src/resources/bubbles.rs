@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::components::bubbles::*;
+
 #[derive(Resource, Debug, Default)]
 pub struct BubbleSpawnTimer {
     pub timer: Timer,
@@ -10,4 +12,5 @@ pub struct BubbleDestroyedEvent {
     pub position: Vec2,
     pub radius: f32,
     pub color: Color,
+    pub bubble_type: BubbleType,
 }
