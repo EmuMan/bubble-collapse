@@ -34,7 +34,16 @@ pub fn spawn_shockwaves(
             }
             BubbleType::ScatterShot => {}
             BubbleType::Beam => {}
-            BubbleType::BlackHole => {}
+            BubbleType::BlackHole => {
+                spawn_black_hole(
+                    &mut commands,
+                    &mut meshes,
+                    &mut materials,
+                    event.position,
+                    300.0,
+                    event.color,
+                );
+            }
         }
     }
 }
@@ -83,6 +92,28 @@ fn spawn_mega_shockwave(
     });
 }
 
+fn spawn_black_hole(
+    commands: &mut Commands,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<ColorMaterial>,
+    position: Vec2,
+    max_radius: f32,
+    color: Color,
+) {
+    let mut black_hole_color = color.clone();
+    black_hole_color.set_alpha(0.5);
+    commands.spawn(BubbleBlackHoleBundle {
+        mesh: Mesh2d(meshes.add(Circle::new(0.0))),
+        mesh_material: MeshMaterial2d(materials.add(black_hole_color)),
+        transform: Transform::from_translation(position.extend(0.0)),
+        bubble_black_hole: BubbleBlackHole::new(max_radius, 1000.0, 3.0),
+        collider: Collider {
+            radius: 0.0,
+            ..Default::default()
+        },
+    });
+}
+
 pub fn expand_shockwaves(
     mut commands: Commands,
     time: Res<Time>,
@@ -97,6 +128,22 @@ pub fn expand_shockwaves(
             materials.get_mut(material).map(|mat| {
                 mat.color.set_alpha((1.0 - shockwave_time).powf(0.5) * 0.3);
             });
+        } else {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
+pub fn wobble_black_holes(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut black_hole_query: Query<(Entity, &mut BubbleBlackHole, &mut Collider, &Mesh2d)>,
+) {
+    for (entity, mut black_hole, mut collider, mesh) in black_hole_query.iter_mut() {
+        if black_hole.tick(&time.delta()).is_some() {
+            collider.radius = black_hole.radius;
+            meshes.insert(mesh, Circle::new(black_hole.radius).into());
         } else {
             commands.entity(entity).despawn();
         }

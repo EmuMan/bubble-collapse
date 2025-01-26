@@ -82,3 +82,36 @@ pub fn bubble_hit_by_shockwave(
         }
     }
 }
+
+pub fn bubble_in_black_hole(
+    time: Res<Time>,
+    mut black_hole_query: Query<(&Transform, &Collider, &BubbleBlackHole)>,
+    mut bubble_query: Query<(&Transform, &Collider, &mut Velocity, &mut Bubble)>,
+) {
+    for (black_hole_transform, black_hole_collider, black_hole) in black_hole_query.iter_mut() {
+        for (
+            bubble_transform,
+            bubble_collider,
+            mut bubble_velocity,
+            mut bubble
+        ) in bubble_query.iter_mut() {
+            if util::continuous_circle_collision(
+                black_hole_transform.translation.truncate(),
+                Vec2::ZERO,
+                black_hole_collider.radius,
+                bubble_transform.translation.truncate(),
+                bubble_velocity.velocity,
+                bubble_collider.radius,
+                time.delta().as_secs_f32(),
+            ) {
+                let direction = black_hole_transform.translation.truncate() - bubble_transform.translation.truncate();
+                let distance = direction.length();
+                let force = black_hole.strength / distance;
+                bubble_velocity.velocity += direction.normalize() * force;
+                if distance < black_hole.max_radius / 10.0 {
+                    bubble.collapse();
+                }
+            }
+        }
+    }
+}

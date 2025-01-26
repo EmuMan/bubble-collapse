@@ -11,16 +11,18 @@ pub struct Bubble {
     pub state: BubbleState,
     pub bubble_type: BubbleType,
     pub collapse_timer: Timer,
+    pub max_y_velocity: f32,
 }
 
 impl Bubble {
-    pub fn new(radius: f32, collapse_time: f32, bubble_type: BubbleType) -> Self {
+    pub fn new(radius: f32, collapse_time: f32, bubble_type: BubbleType, max_y_velocity: f32) -> Self {
         Self {
             radius,
             initial_radius: radius,
             state: BubbleState::Moving,
             bubble_type,
             collapse_timer: Timer::from_seconds(collapse_time, TimerMode::Once),
+            max_y_velocity,
         }
     }
 
@@ -81,7 +83,7 @@ impl BubbleBundle {
             mesh: Mesh2d(meshes.add(Circle::new(radius))),
             mesh_material: MeshMaterial2d(materials.add(color)),
             transform: Transform::from_translation(pos.extend(0.0)),
-            bubble: Bubble::new(radius, collapse_time, bubble_type),
+            bubble: Bubble::new(radius, collapse_time, bubble_type, velocity.y),
             velocity: Velocity { velocity },
             collider: Collider {
                 radius,
@@ -99,10 +101,10 @@ impl BubbleBundle {
     ) -> BubbleBundle {
         let (radius, color, collapse_time) = match bubble_type {
             BubbleType::Normal => (10.0, Color::WHITE, 0.0),
-            BubbleType::Mega => (30.0, Color::linear_rgb(1.0, 0.0, 0.0), 2.0),
-            BubbleType::ScatterShot => (10.0, Color::linear_rgb(0.0, 1.0, 0.0), 0.5),
-            BubbleType::Beam => (10.0, Color::linear_rgb(0.0, 0.0, 1.0), 1.0),
-            BubbleType::BlackHole => (10.0, Color::BLACK, 5.0),
+            BubbleType::Mega => (30.0, Color::linear_rgb(1.0, 0.0, 0.0), 1.0),
+            BubbleType::ScatterShot => (20.0, Color::linear_rgb(0.0, 1.0, 0.0), 0.5),
+            BubbleType::Beam => (15.0, Color::linear_rgb(0.0, 0.0, 1.0), 0.5),
+            BubbleType::BlackHole => (10.0, Color::BLACK, 2.0),
         };
         BubbleBundle::new(
             meshes,
@@ -161,5 +163,52 @@ pub struct BubbleShockwaveBundle {
     pub mesh_material: MeshMaterial2d<ColorMaterial>,
     pub transform: Transform,
     pub bubble_shockwave: BubbleShockwave,
+    pub collider: Collider,
+}
+
+#[derive(Component, Default, Debug)]
+pub struct BubbleBlackHole {
+    pub max_radius: f32,
+    pub radius: f32,
+    pub strength: f32,
+    pub duration: f32,
+    pub timer: Timer,
+}
+
+impl BubbleBlackHole {
+    pub fn new(max_radius: f32, strength: f32, duration: f32) -> Self {
+        Self {
+            max_radius,
+            radius: 0.0,
+            strength,
+            duration,
+            timer: Timer::from_seconds(duration, TimerMode::Once),
+        }
+    }
+
+    pub fn tick(&mut self, time: &Duration) -> Option<f32> {
+        self.timer.tick(*time);
+        if self.timer.finished() {
+            return None;
+        }
+
+        let time = self.timer.remaining_secs() / self.timer.duration().as_secs_f32();
+        
+        {
+            let up_n_down_bit = -1.0 * (time * 2.34 - 1.17).powi(10) + 5.0;
+            let wobbly_bit = (-1.0 * (time * 56.4).cos() + 1.0) / 2.0;
+            self.radius = self.max_radius * (up_n_down_bit + wobbly_bit) / 6.0;
+        }
+
+        Some(self.timer.remaining_secs() / self.timer.duration().as_secs_f32())
+    }
+}
+
+#[derive(Bundle)]
+pub struct BubbleBlackHoleBundle {
+    pub mesh: Mesh2d,
+    pub mesh_material: MeshMaterial2d<ColorMaterial>,
+    pub transform: Transform,
+    pub bubble_black_hole: BubbleBlackHole,
     pub collider: Collider,
 }

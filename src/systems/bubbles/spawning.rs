@@ -8,7 +8,7 @@ use crate::resources::bubbles::BubbleSpawnTimer;
 
 pub fn init_bubble_spawner(mut commands: Commands) {
     commands.insert_resource(BubbleSpawnTimer {
-        timer: Timer::from_seconds(0.3, TimerMode::Repeating),
+        timer: Timer::from_seconds(0.01, TimerMode::Repeating),
     });
 }
 
@@ -23,9 +23,9 @@ pub fn spawn_bubbles(
     spawn_timer.timer.tick(time.delta());
 
     if spawn_timer.timer.just_finished() {
-        let x_pos = rng.next_u32() as f32 % 800.0 - 400.0;
+        let x_pos = rng.next_u32() as f32 / 500.0 % 800.0 - 400.0;
         let y_vel = rng.next_u32() as f32 % 100.0 + 50.0;
-        let bubble_type = match rng.next_u32() % 100 {
+        let bubble_type = match rng.next_u32() % 300 {
             0 => BubbleType::Mega,
             1..=3 => BubbleType::ScatterShot,
             4..=6 => BubbleType::Beam,
