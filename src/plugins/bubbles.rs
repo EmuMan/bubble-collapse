@@ -18,7 +18,10 @@ impl Plugin for BubblesPlugin {
             .add_systems(Update, bubble_clicked)
             .add_systems(Update, spawn_shockwaves)
             .add_systems(Update, expand_shockwaves)
-            .add_systems(Update, bubble_hit_by_shockwave);
+            .add_systems(Update, bubble_hit_by_shockwave)
+            .add_systems(Update, advance_bubble_collapse
+                .after(bubble_clicked)
+                .after(bubble_hit_by_shockwave));
     }
 
 }

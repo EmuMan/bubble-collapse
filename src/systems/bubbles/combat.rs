@@ -6,34 +6,67 @@ use crate::components::physics::*;
 use crate::components::bubbles::*;
 use crate::util;
 
-pub fn bubble_clicked(
+pub fn advance_bubble_collapse(
     mut commands: Commands,
-    mut mouse_click_events: EventReader<MouseClickEvent>,
+    time: Res<Time>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    materials: Res<Assets<ColorMaterial>>,
     mut bubble_destroyed_event: EventWriter<BubbleDestroyedEvent>,
-    mut bubble_query: Query<(Entity, &Transform, &Collider), With<Bubble>>,
+    mut bubble_query: Query<(Entity, &mut Bubble, &Transform, &mut Collider, &Mesh2d, &MeshMaterial2d<ColorMaterial>)>,
+) {
+    for (entity, mut bubble, transform, mut collider, mesh, material) in bubble_query.iter_mut() {
+        if bubble.state == BubbleState::Popped {
+            match bubble.update_collapse(&time.delta()) {
+                Some(progress) => {
+                    let new_radius = bubble.initial_radius * progress.powf(0.33);
+                    bubble.radius = new_radius;
+                    collider.radius = new_radius;
+                    meshes.insert(mesh, Circle::new(new_radius).into());
+                }
+                None => {
+                    commands.entity(entity).despawn();
+                    bubble_destroyed_event.send(BubbleDestroyedEvent {
+                        position: transform.translation.truncate(),
+                        radius: collider.radius,
+                        color: materials.get(material).map(|mat| mat.color).unwrap_or(Color::WHITE),
+                    });
+                }
+            }
+        }
+    }
+}
+
+pub fn bubble_clicked(
+    mut mouse_click_events: EventReader<MouseClickEvent>,
+    mut bubble_query: Query<(&Transform, &Collider, &mut Bubble)>,
 ) {
     for event in mouse_click_events.read() {
-        for (entity, transform, collider) in bubble_query.iter_mut() {
+        for (transform, collider, mut bubble) in bubble_query.iter_mut() {
+            if bubble.state == BubbleState::Popped {
+                continue;
+            }
             if collider.is_point_inside(transform.translation.truncate(), event.position) {
-                commands.entity(entity).despawn();
-                bubble_destroyed_event.send(BubbleDestroyedEvent {
-                    position: transform.translation.truncate(),
-                    radius: collider.radius,
-                });
+                bubble.collapse();
             }
         }
     }
 }
 
 pub fn bubble_hit_by_shockwave(
-    mut commands: Commands,
     time: Res<Time>,
-    mut bubble_destroyed_event: EventWriter<BubbleDestroyedEvent>,
     mut shockwave_query: Query<(&Transform, &Collider), With<BubbleShockwave>>,
-    mut bubble_query: Query<(Entity, &Transform, &Collider, &Velocity), With<Bubble>>,
+    mut bubble_query: Query<(&Transform, &Collider, &Velocity, &mut Bubble)>,
 ) {
     for (shockwave_transform, shockwave_collider) in shockwave_query.iter_mut() {
-        for (bubble_entity, bubble_transform, bubble_collider, bubble_velocity) in bubble_query.iter_mut() {
+        for (
+            bubble_transform,
+            bubble_collider,
+            bubble_velocity,
+            mut bubble
+        ) in bubble_query.iter_mut() {
+            if bubble.state == BubbleState::Popped {
+                continue;
+            }
             if util::continuous_circle_collision(
                 shockwave_transform.translation.truncate(),
                 Vec2::ZERO,
@@ -43,11 +76,7 @@ pub fn bubble_hit_by_shockwave(
                 bubble_collider.radius,
                 time.delta().as_secs_f32(),
             ) {
-                commands.entity(bubble_entity).despawn();
-                bubble_destroyed_event.send(BubbleDestroyedEvent {
-                    position: bubble_transform.translation.truncate(),
-                    radius: bubble_collider.radius,
-                });
+                bubble.collapse();
             }
         }
     }

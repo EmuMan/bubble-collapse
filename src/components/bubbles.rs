@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 
 use crate::components::physics::{Collider, Velocity};
@@ -5,10 +7,37 @@ use crate::components::physics::{Collider, Velocity};
 #[derive(Component, Default, Debug)]
 pub struct Bubble {
     pub radius: f32,
+    pub initial_radius: f32,
     pub state: BubbleState,
+    pub collapse_timer: Timer,
 }
 
-#[derive(Component, Default, Debug)]
+impl Bubble {
+    pub fn new(radius: f32, collapse_time: f32) -> Self {
+        Self {
+            radius,
+            initial_radius: radius,
+            state: BubbleState::Moving,
+            collapse_timer: Timer::from_seconds(collapse_time, TimerMode::Once),
+        }
+    }
+
+    pub fn collapse(&mut self) {
+        self.state = BubbleState::Popped;
+        self.collapse_timer.reset();
+        self.initial_radius = self.radius;
+    }
+
+    pub fn update_collapse(&mut self, time: &Duration) -> Option<f32> {
+        self.collapse_timer.tick(*time);
+        if self.collapse_timer.finished() {
+            return None;
+        }
+        Some(self.collapse_timer.remaining_secs() / self.collapse_timer.duration().as_secs_f32())
+    }
+}
+
+#[derive(Component, Default, Debug, PartialEq)]
 pub enum BubbleState {
     #[default]
     Moving,
@@ -50,13 +79,17 @@ impl BubbleShockwave {
         }
     }
 
-    pub fn tick(&mut self, dt: f32) -> bool {
+    pub fn tick(&mut self, dt: f32) -> Option<f32> {
         self.radius += self.speed * dt;
+        let time = (self.radius - self.initial_radius) / (self.max_radius - self.initial_radius);
         if self.decay {
-            let time = (self.radius - self.initial_radius) / (self.max_radius - self.initial_radius);
             self.strength = self.initial_strength * (1.0 - time);
         }
-        self.radius > self.max_radius
+        if self.radius < self.max_radius {
+            Some(time)
+        } else {
+            None
+        }
     }
 }
 

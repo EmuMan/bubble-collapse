@@ -9,4 +9,5 @@ pub struct BubbleSpawnTimer {
 pub struct BubbleDestroyedEvent {
     pub position: Vec2,
     pub radius: f32,
+    pub color: Color,
 }

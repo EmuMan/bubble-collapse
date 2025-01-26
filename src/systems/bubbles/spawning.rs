@@ -9,7 +9,7 @@ use crate::resources::bubbles::BubbleSpawnTimer;
 
 pub fn init_bubble_spawner(mut commands: Commands) {
     commands.insert_resource(BubbleSpawnTimer {
-        timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+        timer: Timer::from_seconds(0.5, TimerMode::Repeating),
     });
 }
 
@@ -30,10 +30,7 @@ pub fn spawn_bubbles(
             mesh: Mesh2d(meshes.add(Circle::new(radius))),
             mesh_material: MeshMaterial2d(materials.add(Color::WHITE)),
             transform: Transform::from_translation(Vec3::new(x_pos, -100.0, 0.0)),
-            bubble: Bubble {
-                radius,
-                state: BubbleState::Moving,
-            },
+            bubble: Bubble::new(radius, 1.0),
             velocity: Velocity { velocity: Vec2::new(0.0, 100.0) },
             collider: Collider {
                 radius,

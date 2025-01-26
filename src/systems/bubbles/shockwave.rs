@@ -10,12 +10,13 @@ pub fn spawn_shockwaves(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut bubble_destroyed_event: EventReader<BubbleDestroyedEvent>,
 ) {
-    let mut shockwave_color = Color::WHITE;
-    shockwave_color.set_alpha(0.3);
     for event in bubble_destroyed_event.read() {
+        let mut shockwave_color = event.color.clone();
+        shockwave_color.set_alpha(0.3);
+        let material = materials.add(shockwave_color);
         commands.spawn(BubbleShockwaveBundle {
             mesh: Mesh2d(meshes.add(Circle::new(event.radius))),
-            mesh_material: MeshMaterial2d(materials.add(shockwave_color)),
+            mesh_material: MeshMaterial2d(material),
             transform: Transform::from_translation(event.position.extend(0.0)),
             bubble_shockwave: BubbleShockwave::new(event.radius, 250.0, 250.0, 1.0, true),
             collider: Collider {
@@ -30,13 +31,18 @@ pub fn expand_shockwaves(
     mut commands: Commands,
     time: Res<Time>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut shockwave_query: Query<(Entity, &mut BubbleShockwave, &mut Collider, &Mesh2d)>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut shockwave_query: Query<(Entity, &mut BubbleShockwave, &mut Collider, &Mesh2d, &MeshMaterial2d<ColorMaterial>)>,
 ) {
-    for (entity, mut shockwave, mut collider, mesh) in shockwave_query.iter_mut() {
-        if shockwave.tick(time.delta().as_secs_f32()) {
+    for (entity, mut shockwave, mut collider, mesh, material) in shockwave_query.iter_mut() {
+        if let Some(shockwave_time) = shockwave.tick(time.delta().as_secs_f32()) {
+            collider.radius = shockwave.radius;
+            meshes.insert(mesh, Circle::new(shockwave.radius).into());
+            materials.get_mut(material).map(|mat| {
+                mat.color.set_alpha((1.0 - shockwave_time).powf(0.5) * 0.3);
+            });
+        } else {
             commands.entity(entity).despawn();
         }
-        collider.radius = shockwave.radius;
-        meshes.insert(mesh, Circle::new(shockwave.radius).into());
     }
 }
