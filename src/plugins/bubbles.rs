@@ -13,6 +13,7 @@ impl Plugin for BubblesPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<BubbleSpawnTimer>()
+            .init_resource::<BubbleChances>()
             .add_event::<BubbleDestroyedEvent>()
             .add_systems(Startup, init_bubble_spawner)
             .add_systems(Update, spawn_bubbles)

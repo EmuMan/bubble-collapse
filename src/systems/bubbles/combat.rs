@@ -106,7 +106,7 @@ pub fn bubble_in_black_hole(
             ) {
                 let direction = black_hole_transform.translation.truncate() - bubble_transform.translation.truncate();
                 let distance = direction.length();
-                let force = black_hole.strength / distance;
+                let force = (black_hole.strength / distance).min(black_hole.max_pull);
                 bubble_velocity.velocity += direction.normalize() * force;
                 if distance < black_hole.max_radius / 10.0 {
                     bubble.collapse();

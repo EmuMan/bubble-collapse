@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use crate::components::physics::{Collider, Velocity};
+use crate::{components::physics::{Collider, Velocity}, util::ActionTimer};
 
 #[derive(Component, Default, Debug)]
 pub struct Bubble {
@@ -48,7 +48,7 @@ pub enum BubbleState {
     Popped,
 }
 
-#[derive(Default, Debug, Clone, Copy, PartialEq)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BubbleType {
     #[default]
     Normal,
@@ -171,16 +171,18 @@ pub struct BubbleBlackHole {
     pub max_radius: f32,
     pub radius: f32,
     pub strength: f32,
+    pub max_pull: f32,
     pub duration: f32,
     pub timer: Timer,
 }
 
 impl BubbleBlackHole {
-    pub fn new(max_radius: f32, strength: f32, duration: f32) -> Self {
+    pub fn new(max_radius: f32, strength: f32, max_pull: f32, duration: f32) -> Self {
         Self {
             max_radius,
             radius: 0.0,
             strength,
+            max_pull,
             duration,
             timer: Timer::from_seconds(duration, TimerMode::Once),
         }
@@ -217,13 +219,10 @@ pub struct BubbleBlackHoleBundle {
 pub struct BubbleScatterShotSpawner {
     pub radius: f32,
     pub variation: f32,
-    pub duration: f32,
-    pub count: u32,
     pub instance: BubbleShockwave,
     pub shockwave_color: Color,
     pub shockwave_radius: f32,
-    timer: Timer,
-    spawned_so_far: u32,
+    pub action_timer: ActionTimer,
 }
 
 impl BubbleScatterShotSpawner {
@@ -239,27 +238,20 @@ impl BubbleScatterShotSpawner {
         Self {
             radius,
             variation,
-            duration,
-            count,
             instance,
             shockwave_color,
             shockwave_radius,
-            timer: Timer::from_seconds(duration, TimerMode::Once),
-            spawned_so_far: 0,
+            action_timer: ActionTimer::new(
+                Duration::from_secs_f32(duration),
+                count as u64,
+                TimerMode::Once,
+            ),
         }
     }
 
     // returns how many new shockwaves to spawn
     pub fn tick(&mut self, time: &Duration) -> Option<u32> {
-        self.timer.tick(*time);
-        if self.timer.finished() {
-            return None;
-        }
-
-        let percent_done = self.timer.elapsed_secs() / self.duration;
-        let new_shockwaves = (percent_done * self.count as f32) as u32 - self.spawned_so_far;
-        self.spawned_so_far += new_shockwaves;
-        Some(new_shockwaves)
+        self.action_timer.tick(*time).map(|x| x as u32)
     }
 }
 

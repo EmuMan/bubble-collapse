@@ -1,4 +1,57 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
+
+#[derive(Component, Resource, Debug, Default, Clone)]
+pub struct ActionTimer {
+    pub timer: Timer,
+    pub amount: u64,
+    pub already_completed: u64,
+}
+
+impl ActionTimer {
+    pub fn new(duration: Duration, amount: u64, mode: TimerMode) -> Self {
+        Self {
+            timer: Timer::new(duration, mode),
+            amount,
+            already_completed: 0,
+        }
+    }
+
+    // Returns how many actions to be completed this tick
+    pub fn tick(&mut self, delta: Duration) -> Option<u64> {
+        self.timer.tick(delta);
+        if self.timer.finished() {
+            if self.already_completed >= self.amount {
+                self.reset_count_if_repeating();
+                None
+            } else {
+                let left = self.amount - self.already_completed;
+                self.already_completed = self.amount;
+                self.reset_count_if_repeating();
+                Some(left)
+            }
+        } else {
+            let time = self.timer.elapsed_secs() / self.timer.duration().as_secs_f32();
+            let expected_actions = (time * self.amount as f32).round() as u64;
+            // should never break but just in case...
+            let actions = expected_actions.checked_sub(self.already_completed).unwrap_or(0);
+            self.already_completed = expected_actions;
+            Some(actions)
+        }
+    }
+
+    fn reset_count_if_repeating(&mut self) {
+        if self.timer.mode() == TimerMode::Repeating {
+            self.already_completed = 0;
+        }
+    }
+
+    pub fn reset(&mut self) {
+        self.timer.reset();
+        self.already_completed = 0;
+    }
+}
 
 pub fn continuous_circle_collision(
     pos1: Vec2, vel1: Vec2, radius1: f32,

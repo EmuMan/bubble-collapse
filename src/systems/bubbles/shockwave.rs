@@ -118,7 +118,7 @@ fn spawn_black_hole(
         mesh: Mesh2d(meshes.add(Circle::new(0.0))),
         mesh_material: MeshMaterial2d(materials.add(black_hole_color)),
         transform: Transform::from_translation(position.extend(0.0)),
-        bubble_black_hole: BubbleBlackHole::new(max_radius, 1000.0, 3.0),
+        bubble_black_hole: BubbleBlackHole::new(max_radius, 1000.0, 100.0, 3.0),
         collider: Collider {
             radius: 0.0,
             ..Default::default()
