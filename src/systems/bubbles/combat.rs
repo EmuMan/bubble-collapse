@@ -25,7 +25,7 @@ pub fn advance_bubble_collapse(
                     meshes.insert(mesh, Circle::new(new_radius).into());
                 }
                 None => {
-                    commands.entity(entity).despawn();
+                    commands.entity(entity).despawn_recursive();
                     bubble_destroyed_event.send(BubbleDestroyedEvent {
                         position: transform.translation.truncate(),
                         radius: collider.radius,

@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+use crate::resources::ui::{UpgradeChangedEvent, UpgradesMenuInfo};
 use crate::systems::ui::*;
 use crate::game_states::{DebugState, GameState, PausedState};
 
@@ -9,6 +10,8 @@ impl Plugin for UiPlugin {
 
     fn build(&self, app: &mut App) {
         app
+            .add_event::<UpgradeChangedEvent>()
+            .init_resource::<UpgradesMenuInfo>()
             .add_systems(Update, (
                 (
                     debug::ui_debug,
@@ -33,10 +36,14 @@ impl Plugin for UiPlugin {
                 pause_menu::unpause_game_on_esc.run_if(in_state(PausedState::Paused)),
             ).run_if(in_state(GameState::InGame)))
             .add_systems(OnExit(GameState::InGame), pause_menu::unpause_game)
-            .add_systems(OnEnter(GameState::InGame), upgrades_menu::draw_upgrades_menu)
+            .add_systems(OnEnter(GameState::InGame), (
+                upgrades_menu::draw_upgrades_menu,
+                upgrades_menu::reset_upgrades,
+            ))
             .add_systems(OnExit(GameState::InGame), upgrades_menu::cleanup_upgrades_menu)
             .add_systems(Update, (
-                upgrades_menu::button_system,
+                upgrades_menu::button_interactions,
+                upgrades_menu::update_upgrades_menu,
             ).run_if(in_state(GameState::InGame)));
     }
 

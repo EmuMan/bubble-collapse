@@ -193,7 +193,7 @@ pub fn expand_shockwaves(
                 mat.color.set_alpha(shockwave_time.powf(0.5) * 0.3);
             });
         } else {
-            commands.entity(entity).despawn();
+            commands.entity(entity).despawn_recursive();
         }
     }
 }
@@ -209,7 +209,7 @@ pub fn wobble_black_holes(
             collider.radius = black_hole.radius;
             meshes.insert(mesh, Circle::new(black_hole.radius).into());
         } else {
-            commands.entity(entity).despawn();
+            commands.entity(entity).despawn_recursive();
         }
     }
 }
@@ -244,7 +244,7 @@ pub fn spawn_scatter_shot_shockwaves(
                 });
             }
         } else {
-            commands.entity(entity).despawn();
+            commands.entity(entity).despawn_recursive();
         }
     }
 }
@@ -259,7 +259,7 @@ pub fn expand_beam(
         if beam.tick(&time.delta()).is_some() {
             meshes.insert(mesh, Rectangle::new(beam.width, 3_000.0).into());
         } else {
-            commands.entity(entity).despawn();
+            commands.entity(entity).despawn_recursive();
         }
     }
 }

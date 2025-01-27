@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{components::ui::ScoreText, resources::{bubbles::BubbleCollapsedEvent, stats::GameStats}};
+use crate::{components::ui::ScoreText, resources::{bubbles::BubbleCollapsedEvent, stats::GameStats, ui::{UpgradeChangedEvent, UpgradesMenuInfo}}};
 
 pub fn init_stats(mut game_stats: ResMut<GameStats>) {
     game_stats.score = 0;
@@ -33,15 +33,17 @@ pub fn cleanup_score(mut commands: Commands, query: Query<Entity, With<ScoreText
 }
 
 pub fn update_score(
+    mut commands: Commands,
     time: Res<Time>,
     game_stats: Res<GameStats>,
-    mut query: Query<(&mut Text2d, &mut TextFont, &mut ScoreText)>,
+    mut query: Query<(Entity, &mut Transform, &mut ScoreText)>,
 ) {
-    for (mut text, mut text_font, mut score_text) in &mut query {
-        text.0 = format!("Score: {}", game_stats.score);
+    for (entity, mut transform, mut score_text) in &mut query {
+        commands.entity(entity).insert(Text2d::new(format!("Score: {}", game_stats.score)));
         score_text.scale_timer.tick(time.delta());
         let left = score_text.scale_timer.remaining_secs() / score_text.scale_timer.duration().as_secs_f32();
-        text_font.font_size = 50.0 + 20.0 * left;
+        let scale = 1.0 + 0.2 * left;
+        transform.scale = Vec3::new(scale, scale, 1.0);
     }
 }
 
@@ -57,5 +59,22 @@ pub fn increment_score_for_destroyed_bubbles(
                 score_text.scale_timer.reset();
             }
         }
+    }
+}
+
+pub fn unlock_upgrades(
+    game_stats: Res<GameStats>,
+    mut upgrades: ResMut<UpgradesMenuInfo>,
+    mut unlock_events: EventWriter<UpgradeChangedEvent>,
+) {
+    let mut to_unlock = vec![];
+    for (upgrade, cost) in &upgrades.costs {
+        if game_stats.score > 0 && game_stats.score as u32 >= *cost {
+            to_unlock.push(*upgrade);
+        }
+    }
+    for upgrade in to_unlock {
+        upgrades.unlock(upgrade);
+        unlock_events.send(UpgradeChangedEvent { action: upgrade });
     }
 }

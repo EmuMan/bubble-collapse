@@ -21,7 +21,7 @@ pub fn init_bubble_spawner(
         ),
     });
 
-    bubble_chances.set_chance(BubbleType::Normal, 20.0);
+    bubble_chances.set_chance(BubbleType::Normal, 100.0);
     bubble_chances.set_chance(BubbleType::Mega, 0.0);
     bubble_chances.set_chance(BubbleType::ScatterShot, 0.0);
     bubble_chances.set_chance(BubbleType::BlackHole, 0.0);
@@ -59,8 +59,8 @@ pub fn despawn_bubbles(
     bubble_query: Query<(Entity, &Transform), With<Bubble>>,
 ) {
     for (entity, transform) in bubble_query.iter() {
-        if transform.translation.y > 400.0 {
-            commands.entity(entity).despawn();
+        if transform.translation.y > 0.0 {
+            commands.entity(entity).despawn_recursive();
         }
     }
 }
@@ -76,6 +76,6 @@ pub fn cleanup_everything(
     )>>,
 ) {
     for entity in query.iter() {
-        commands.entity(entity).despawn();
+        commands.entity(entity).despawn_recursive();
     }
 }

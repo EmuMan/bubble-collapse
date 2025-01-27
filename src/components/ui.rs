@@ -22,4 +22,13 @@ impl Default for ScoreText {
     }
 }
 
+#[derive(Component, Debug, Default, Clone, Copy)]
+pub struct Activatable {
+    pub active: bool,
+}
 
+impl Activatable {
+    pub fn new(active: bool) -> Self {
+        Self { active }
+    }
+}

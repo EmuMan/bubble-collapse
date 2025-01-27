@@ -19,6 +19,7 @@ impl Plugin for StatsPlugin {
             .add_systems(Update, (
                 update_score,
                 increment_score_for_destroyed_bubbles,
+                unlock_upgrades,
             ).run_if(in_state(GameState::InGame)));
     }
 

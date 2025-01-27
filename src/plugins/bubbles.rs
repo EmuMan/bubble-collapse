@@ -23,6 +23,7 @@ impl Plugin for BubblesPlugin {
             .add_systems(Update, (
                 (
                     spawn_bubbles,
+                    despawn_bubbles,
                 ).in_set(BubbleSystemSet::Spawning)
                     .run_if(in_state(GameState::InGame))
                     .run_if(in_state(PausedState::Unpaused)),
