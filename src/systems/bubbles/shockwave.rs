@@ -82,7 +82,7 @@ fn spawn_normal_shockwave(
     commands.spawn(BubbleShockwaveBundle {
         mesh: Mesh2d(meshes.add(Circle::new(radius))),
         mesh_material: MeshMaterial2d(materials.add(shockwave_color)),
-        transform: Transform::from_translation(position.extend(0.0)),
+        transform: Transform::from_translation(position.extend(-(position.x / 1000.0 + position.y))),
         bubble_shockwave: BubbleShockwave::new(radius, 250.0, 50.0, 1.0, true),
         collider: Collider {
             radius,
@@ -104,7 +104,7 @@ fn spawn_mega_shockwave(
     commands.spawn(BubbleShockwaveBundle {
         mesh: Mesh2d(meshes.add(Circle::new(radius))),
         mesh_material: MeshMaterial2d(materials.add(shockwave_color)),
-        transform: Transform::from_translation(position.extend(0.0)),
+        transform: Transform::from_translation(position.extend(-(position.x / 1000.0 + position.y))),
         bubble_shockwave: BubbleShockwave::new(radius, 500.0, 750.0, 100.0, true),
         collider: Collider {
             radius,
@@ -126,7 +126,7 @@ fn spawn_black_hole(
     commands.spawn(BubbleBlackHoleBundle {
         mesh: Mesh2d(meshes.add(Circle::new(0.0))),
         mesh_material: MeshMaterial2d(materials.add(black_hole_color)),
-        transform: Transform::from_translation(position.extend(0.0)),
+        transform: Transform::from_translation(position.extend(-(position.x / 1000.0 + position.y))),
         bubble_black_hole: BubbleBlackHole::new(max_radius, 1000.0, 100.0, 3.0),
         collider: Collider {
             radius: 0.0,
@@ -174,7 +174,7 @@ fn spawn_beam(
         mesh: Mesh2d(meshes.add(Rectangle::new(0.0, 1_000.0))),
         mesh_material: MeshMaterial2d(materials.add(beam_color)),
         beam: BubbleBeam::new(width, 1.0),
-        transform: Transform::from_translation(position.extend(0.0)),
+        transform: Transform::from_translation(position.extend(-(position.x / 1000.0 + position.y))),
     });
 }
 
@@ -190,7 +190,7 @@ pub fn expand_shockwaves(
             collider.radius = shockwave.radius;
             meshes.insert(mesh, Circle::new(shockwave.radius).into());
             materials.get_mut(material).map(|mat| {
-                mat.color.set_alpha(shockwave_time.powf(0.5) * 0.3);
+                mat.color.set_alpha((1.0 - shockwave_time).powf(0.5) * 0.3);
             });
         } else {
             commands.entity(entity).despawn_recursive();

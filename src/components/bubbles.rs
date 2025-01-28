@@ -82,7 +82,7 @@ impl BubbleBundle {
         BubbleBundle {
             mesh: Mesh2d(meshes.add(Circle::new(radius))),
             mesh_material: MeshMaterial2d(materials.add(color)),
-            transform: Transform::from_translation(pos.extend(0.0)),
+            transform: Transform::from_translation(pos.extend(-(pos.x / 1000.0 + pos.y))),
             bubble: Bubble::new(radius, collapse_time, bubble_type, velocity.y),
             velocity: Velocity { velocity },
             collider: Collider {

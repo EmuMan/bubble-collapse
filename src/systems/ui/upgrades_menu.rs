@@ -148,7 +148,7 @@ pub fn update_upgrades_menu(
                     text_color.0 = Color::WHITE;
                 } else {
                     border_color.0 = Color::srgb(0.2, 0.4, 0.7);
-                    text_color.0 = Color::srgb(0.0, 0.0, 1.0);
+                    text_color.0 = Color::srgb(0.3, 0.5, 0.8);
                 }
             }
         }

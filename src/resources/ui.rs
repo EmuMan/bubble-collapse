@@ -18,7 +18,7 @@ impl Default for UpgradesMenuInfo {
                 map.insert(UpgradesMenuAction::IncreaseChance(BubbleType::Beam), 25);
                 map.insert(UpgradesMenuAction::IncreaseChance(BubbleType::ScatterShot), 150);
                 map.insert(UpgradesMenuAction::IncreaseChance(BubbleType::BlackHole), 1000);
-                map.insert(UpgradesMenuAction::IncreaseChance(BubbleType::Mega), 100000);
+                map.insert(UpgradesMenuAction::IncreaseChance(BubbleType::Mega), 10000);
                 map
             },
         }

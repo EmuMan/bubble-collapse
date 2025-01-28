@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, window::PrimaryWindow};
 
 #[derive(Component, Resource, Debug, Default, Clone)]
 pub struct ActionTimer {
@@ -132,7 +132,7 @@ pub fn spawn_button_with_text(
         Button,
         button_node,
         BorderColor(Color::WHITE),
-        BackgroundColor(Color::srgb(0.0, 0.0, 1.0)),
+        BackgroundColor(Color::srgb(0.3, 0.5, 0.8)),
     )).id();
 
     let button_text = commands.spawn((
@@ -144,4 +144,22 @@ pub fn spawn_button_with_text(
     commands.entity(button).add_children(&[button_text]);
 
     button
+}
+
+pub fn get_viewport_bounds(
+    window_query: &Query<&Window, With<PrimaryWindow>>,
+    camera_query: &Query<(&Camera, &GlobalTransform)>,
+) -> Option<Rect> {
+    let min_bounds = Vec2::new(0.0, 0.0);
+    let max_bounds = window_query.get_single().ok()?.size();
+
+    let (camera, camera_transform) = camera_query.get_single().ok()?;
+
+    let top_left_world_pos = camera.viewport_to_world_2d(camera_transform, min_bounds).ok()?;
+    let bottom_right_world_pos = camera.viewport_to_world_2d(camera_transform, max_bounds).ok()?;
+
+    Some(Rect {
+        min: Vec2::new(top_left_world_pos.x, bottom_right_world_pos.y),
+        max: Vec2::new(bottom_right_world_pos.x, top_left_world_pos.y),
+    })
 }

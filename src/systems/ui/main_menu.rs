@@ -26,7 +26,7 @@ pub fn draw_main_menu(
     )).id();
 
     let main_text = commands.spawn((
-        Text::new("Silly Little Game"),
+        Text::new("Bubble Collapse"),
         TextFont {
             font_size: 70.0,
             ..default()

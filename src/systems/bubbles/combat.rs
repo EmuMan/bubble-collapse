@@ -120,7 +120,7 @@ pub fn bubble_in_black_hole(
                 let distance = direction.length();
                 let force = (black_hole.strength / distance).min(black_hole.max_pull);
                 bubble_velocity.velocity += direction.normalize() * force;
-                if distance < black_hole.max_radius / 5.0 {
+                if distance < black_hole.max_radius / 5.0 && bubble.state != BubbleState::Popped {
                     bubble.collapse();
                     collapse_event.send(BubbleCollapsedEvent {
                         triggered_by_user: false,

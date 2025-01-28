@@ -1,6 +1,6 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::{components::ui::ScoreText, resources::{bubbles::BubbleCollapsedEvent, stats::GameStats, ui::{UpgradeChangedEvent, UpgradesMenuInfo}}};
+use crate::{components::ui::ScoreText, resources::{bubbles::BubbleCollapsedEvent, stats::GameStats, ui::{UpgradeChangedEvent, UpgradesMenuInfo}}, util::get_viewport_bounds};
 
 pub fn init_stats(mut game_stats: ResMut<GameStats>) {
     game_stats.score = 0;
@@ -36,14 +36,23 @@ pub fn update_score(
     mut commands: Commands,
     time: Res<Time>,
     game_stats: Res<GameStats>,
-    mut query: Query<(Entity, &mut Transform, &mut ScoreText)>,
+    mut score_query: Query<(Entity, &mut Transform, &mut ScoreText)>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    camera_query: Query<(&Camera, &GlobalTransform)>,
 ) {
-    for (entity, mut transform, mut score_text) in &mut query {
+    let viewport_bounds = get_viewport_bounds(&window_query, &camera_query);
+    
+    let position = viewport_bounds.map(|bounds| Vec3::new(bounds.min.x + 200.0, bounds.max.y - 100.0, 0.0));
+
+    for (entity, mut transform, mut score_text) in &mut score_query {
         commands.entity(entity).insert(Text2d::new(format!("Score: {}", game_stats.score)));
         score_text.scale_timer.tick(time.delta());
         let left = score_text.scale_timer.remaining_secs() / score_text.scale_timer.duration().as_secs_f32();
         let scale = 1.0 + 0.2 * left;
         transform.scale = Vec3::new(scale, scale, 1.0);
+        if let Some(position) = position {
+            transform.translation = position;
+        }
     }
 }
 
