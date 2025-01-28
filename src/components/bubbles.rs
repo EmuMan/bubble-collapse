@@ -120,40 +120,64 @@ impl BubbleBundle {
 }
 
 #[derive(Component, Default, Debug, Clone)]
-pub struct BubbleShockwave {
-    initial_radius: f32,
-    pub radius: f32,
-    pub speed: f32,
-    pub max_radius: f32,
-    initial_strength: f32,
-    pub strength: f32,
-    pub decay: bool,
+pub struct TimedEffect {
+    pub timer: Timer,
 }
 
-impl BubbleShockwave {
-    pub fn new(radius: f32, speed: f32, max_radius: f32, initial_strength: f32, decay: bool) -> Self {
+impl TimedEffect {
+    pub fn new(duration: Duration) -> Self {
         Self {
-            initial_radius: radius,
-            radius,
-            speed,
-            max_radius,
-            initial_strength,
-            strength: initial_strength,
-            decay,
+            timer: Timer::new(duration, TimerMode::Once),
         }
     }
 
-    pub fn tick(&mut self, dt: f32) -> Option<f32> {
-        self.radius += self.speed * dt;
-        let time = (self.radius - self.initial_radius) / (self.max_radius - self.initial_radius);
-        if self.decay {
-            self.strength = self.initial_strength * (1.0 - time);
+    pub fn tick(&mut self, time: Duration) -> bool {
+        self.timer.tick(time).finished()
+    }
+
+    pub fn reset(&mut self) {
+        self.timer.reset();
+    }
+
+    pub fn set_duration(&mut self, duration: &Duration) {
+        self.timer.set_duration(*duration);
+    }
+
+    pub fn duration(&self) -> Duration {
+        self.timer.duration()
+    }
+
+    pub fn elapsed(&self) -> Duration {
+        self.timer.elapsed()
+    }
+
+    pub fn remaining(&self) -> Duration {
+        self.timer.remaining()
+    }
+
+    pub fn progress(&self) -> f32 {
+        self.elapsed().as_secs_f32() / self.duration().as_secs_f32()
+    }
+}
+
+#[derive(Component, Default, Debug, Clone)]
+pub struct BubbleShockwave {
+    initial_radius: f32,
+    pub radius: f32,
+    pub max_radius: f32,
+}
+
+impl BubbleShockwave {
+    pub fn new(radius: f32, max_radius: f32) -> Self {
+        Self {
+            initial_radius: radius,
+            radius,
+            max_radius,
         }
-        if self.radius < self.max_radius {
-            Some(time)
-        } else {
-            None
-        }
+    }
+
+    pub fn set_radius_from_time(&mut self, time: f32) {
+        self.radius = self.initial_radius.lerp(self.max_radius, time);
     }
 }
 
@@ -162,6 +186,7 @@ pub struct BubbleShockwaveBundle {
     pub mesh: Mesh2d,
     pub mesh_material: MeshMaterial2d<ColorMaterial>,
     pub transform: Transform,
+    pub timed_effect: TimedEffect,
     pub bubble_shockwave: BubbleShockwave,
     pub collider: Collider,
 }
@@ -172,37 +197,22 @@ pub struct BubbleBlackHole {
     pub radius: f32,
     pub strength: f32,
     pub max_pull: f32,
-    pub duration: f32,
-    pub timer: Timer,
 }
 
 impl BubbleBlackHole {
-    pub fn new(max_radius: f32, strength: f32, max_pull: f32, duration: f32) -> Self {
+    pub fn new(max_radius: f32, strength: f32, max_pull: f32) -> Self {
         Self {
             max_radius,
             radius: 0.0,
             strength,
             max_pull,
-            duration,
-            timer: Timer::from_seconds(duration, TimerMode::Once),
         }
     }
 
-    pub fn tick(&mut self, time: &Duration) -> Option<f32> {
-        self.timer.tick(*time);
-        if self.timer.finished() {
-            return None;
-        }
-
-        let time = self.timer.elapsed_secs() / self.timer.duration().as_secs_f32();
-        
-        {
-            let up_n_down_bit = -1.0 * (time * 2.34 - 1.17).powi(10) + 5.0;
-            let wobbly_bit = (-1.0 * (time * 56.4).cos() + 1.0) / 2.0;
-            self.radius = self.max_radius * (up_n_down_bit + wobbly_bit) / 6.0;
-        }
-
-        Some(time)
+    pub fn set_radius_from_time(&mut self, time: f32) {
+        let up_n_down_bit = -1.0 * (time * 2.34 - 1.17).powi(10) + 5.0;
+        let wobbly_bit = (-1.0 * (time * 56.4).cos() + 1.0) / 2.0;
+        self.radius = self.max_radius * (up_n_down_bit + wobbly_bit) / 6.0;
     }
 }
 
@@ -211,6 +221,7 @@ pub struct BubbleBlackHoleBundle {
     pub mesh: Mesh2d,
     pub mesh_material: MeshMaterial2d<ColorMaterial>,
     pub transform: Transform,
+    pub timed_effect: TimedEffect,
     pub bubble_black_hole: BubbleBlackHole,
     pub collider: Collider,
 }
@@ -219,44 +230,32 @@ pub struct BubbleBlackHoleBundle {
 pub struct BubbleScatterShotSpawner {
     pub radius: f32,
     pub variation: f32,
+    pub instance_timer: TimedEffect,
     pub instance: BubbleShockwave,
     pub shockwave_color: Color,
-    pub shockwave_radius: f32,
-    pub action_timer: ActionTimer,
 }
 
 impl BubbleScatterShotSpawner {
     pub fn new(
         radius: f32,
         variation: f32,
-        duration: f32,
-        count: u32,
+        instance_duration: Duration,
         instance: BubbleShockwave,
         shockwave_color: Color,
-        shockwave_radius: f32,
     ) -> Self {
         Self {
             radius,
             variation,
+            instance_timer: TimedEffect::new(instance_duration),
             instance,
             shockwave_color,
-            shockwave_radius,
-            action_timer: ActionTimer::new(
-                Duration::from_secs_f32(duration),
-                count as u64,
-                TimerMode::Once,
-            ),
         }
-    }
-
-    // returns how many new shockwaves to spawn
-    pub fn tick(&mut self, time: &Duration) -> Option<u32> {
-        self.action_timer.tick(*time).map(|x| x as u32)
     }
 }
 
 #[derive(Bundle)]
 pub struct BubbleScatterShotSpawnerBundle {
+    pub action_timer: ActionTimer,
     pub spawner: BubbleScatterShotSpawner,
     pub transform: Transform,
 }
@@ -264,32 +263,20 @@ pub struct BubbleScatterShotSpawnerBundle {
 #[derive(Component, Debug, Default)]
 pub struct BubbleBeam {
     pub width: f32,
-    initial_width: f32,
-    pub duration: f32,
-    timer: Timer,
+    pub max_width: f32,
 }
 
 impl BubbleBeam {
-    pub fn new(width: f32, duration: f32) -> Self {
+    pub fn new(max_width: f32) -> Self {
         Self {
-            width,
-            initial_width: width,
-            duration,
-            timer: Timer::from_seconds(duration, TimerMode::Once),
+            width: 0.0,
+            max_width,
         }
     }
 
-    pub fn tick(&mut self, time: &Duration) -> Option<f32> {
-        self.timer.tick(*time);
-        if self.timer.finished() {
-            return None;
-        }
-
-        let time = self.timer.elapsed_secs() / self.timer.duration().as_secs_f32();
+    pub fn set_width_from_time(&mut self, time: f32) {
         let value = (4.0 * time).powi(2).min(-time + 1.0);
-        self.width = self.initial_width * value;
-
-        Some(time)
+        self.width = self.max_width * value;
     }
 }
 
@@ -297,6 +284,7 @@ impl BubbleBeam {
 pub struct BubbleBeamBundle {
     pub mesh: Mesh2d,
     pub mesh_material: MeshMaterial2d<ColorMaterial>,
+    pub timed_effect: TimedEffect,
     pub beam: BubbleBeam,
     pub transform: Transform,
 }
