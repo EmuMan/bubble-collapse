@@ -10,19 +10,30 @@ use crate::util;
 pub fn advance_bubble_collapse(
     mut commands: Commands,
     time: Res<Time>,
-    mut meshes: ResMut<Assets<Mesh>>,
     materials: Res<Assets<ColorMaterial>>,
     mut bubble_destroyed_event: EventWriter<BubbleDestroyedEvent>,
-    mut bubble_query: Query<(Entity, &mut Bubble, &Transform, &mut Collider, &Mesh2d, &MeshMaterial2d<ColorMaterial>)>,
+    mut bubble_query: Query<(
+        Entity,
+        &mut Bubble,
+        &mut Transform,
+        &mut Collider,
+        &MeshMaterial2d<ColorMaterial>
+    )>,
 ) {
-    for (entity, mut bubble, transform, mut collider, mesh, material) in bubble_query.iter_mut() {
+    for (
+        entity,
+        mut bubble,
+        mut transform,
+        mut collider,
+        material
+    ) in &mut bubble_query {
         if bubble.state == BubbleState::Popped {
             match bubble.update_collapse(&time.delta()) {
                 Some(progress) => {
                     let new_radius = bubble.initial_radius * (1.0 - progress).powf(0.33);
                     bubble.radius = new_radius;
                     collider.radius = new_radius;
-                    meshes.insert(mesh, Circle::new(new_radius).into());
+                    transform.scale = Vec3::splat(new_radius);
                 }
                 None => {
                     commands.entity(entity).despawn_recursive();
@@ -44,7 +55,7 @@ pub fn bubble_clicked(
     mut bubble_query: Query<(&Transform, &Collider, &mut Bubble)>,
 ) {
     for event in mouse_click_events.read() {
-        for (transform, collider, mut bubble) in bubble_query.iter_mut() {
+        for (transform, collider, mut bubble) in &mut bubble_query {
             if bubble.state == BubbleState::Popped {
                 continue;
             }
@@ -65,7 +76,7 @@ pub fn bubble_hit_by_shockwave(
     mut shockwave_query: Query<(&Transform, &Collider), With<BubbleShockwave>>,
     mut bubble_query: Query<(&Transform, &Collider, &Velocity, &mut Bubble)>,
 ) {
-    for (shockwave_transform, shockwave_collider) in shockwave_query.iter_mut() {
+    for (shockwave_transform, shockwave_collider) in &mut shockwave_query {
         for (
             bubble_transform,
             bubble_collider,

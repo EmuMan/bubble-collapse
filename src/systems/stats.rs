@@ -1,6 +1,6 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::{components::ui::ScoreText, resources::{bubbles::BubbleCollapsedEvent, stats::GameStats, ui::{UpgradeChangedEvent, UpgradesMenuInfo}}, util::get_viewport_bounds};
+use crate::{components::ui::ScoreText, resources::{bubbles::BubbleCollapsedEvent, cache::FontCache, stats::GameStats, ui::{UpgradeChangedEvent, UpgradesMenuInfo}}, util::get_viewport_bounds};
 
 pub fn init_stats(mut game_stats: ResMut<GameStats>) {
     game_stats.score = 0;
@@ -9,11 +9,10 @@ pub fn init_stats(mut game_stats: ResMut<GameStats>) {
 pub fn draw_score(
     mut commands: Commands,
     game_stats: Res<GameStats>,
-    asset_server: Res<AssetServer>,
+    font_cache: Res<FontCache>,
 ) {
-    let font = asset_server.load("fonts/Coolvetica Rg.otf");
     let text_font = TextFont {
-        font: font.clone(),
+        font: font_cache.coolvetica_rg.clone(),
         font_size: 50.0,
         ..default()
     };

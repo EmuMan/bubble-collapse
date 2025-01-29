@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use crate::{components::physics::{Collider, Velocity}, util::ActionTimer};
+use crate::{components::physics::{Collider, Velocity}, resources::cache::MeshCache, util::ActionTimer};
 
 #[derive(Component, Default, Debug)]
 pub struct Bubble {
@@ -70,8 +70,8 @@ pub struct BubbleBundle {
 
 impl BubbleBundle {
     pub fn new(
-        meshes: &mut Assets<Mesh>,
         materials: &mut Assets<ColorMaterial>,
+        mesh: Handle<Mesh>,
         radius: f32,
         color: Color,
         bubble_type: BubbleType,
@@ -80,9 +80,10 @@ impl BubbleBundle {
         velocity: Vec2,
     ) -> BubbleBundle {
         BubbleBundle {
-            mesh: Mesh2d(meshes.add(Circle::new(radius))),
+            mesh: Mesh2d(mesh),
             mesh_material: MeshMaterial2d(materials.add(color)),
-            transform: Transform::from_translation(pos.extend(-(pos.x / 1000.0 + pos.y))),
+            transform: Transform::from_translation(pos.extend(-(pos.x / 1000.0 + pos.y)))
+                .with_scale(Vec3::splat(radius)),
             bubble: Bubble::new(radius, collapse_time, bubble_type, velocity.y),
             velocity: Velocity { velocity },
             collider: Collider {
@@ -93,7 +94,7 @@ impl BubbleBundle {
     }
 
     pub fn from_type(
-        meshes: &mut Assets<Mesh>,
+        mesh_cache: &MeshCache,
         materials: &mut Assets<ColorMaterial>,
         bubble_type: BubbleType,
         pos: Vec2,
@@ -107,8 +108,8 @@ impl BubbleBundle {
             BubbleType::BlackHole => (10.0, Color::BLACK, 2.0),
         };
         BubbleBundle::new(
-            meshes,
             materials,
+            mesh_cache.circle_mesh.clone(),
             radius,
             color,
             bubble_type,

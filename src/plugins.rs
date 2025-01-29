@@ -5,3 +5,4 @@ pub mod physics;
 pub mod interaction;
 pub mod ui;
 pub mod game_states;
+pub mod cache;

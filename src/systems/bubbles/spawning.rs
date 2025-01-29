@@ -8,6 +8,7 @@ use rand_core::RngCore;
 
 use crate::components::bubbles::*;
 use crate::resources::bubbles::*;
+use crate::resources::cache::MeshCache;
 use crate::util::get_viewport_bounds;
 use crate::util::ActionTimer;
 
@@ -32,8 +33,8 @@ pub fn init_bubble_spawner(
 
 pub fn spawn_bubbles(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mesh_cache: Res<MeshCache>,
     mut spawn_timer: ResMut<BubbleSpawnTimer>,
     time: Res<Time>,
     mut rng: ResMut<GlobalEntropy<WyRand>>,
@@ -56,7 +57,7 @@ pub fn spawn_bubbles(
         let bubble_type = chances.random_sample(rng.next_u32());
 
         commands.spawn(BubbleBundle::from_type(
-            &mut meshes,
+            &mesh_cache,
             &mut materials,
             bubble_type,
             Vec2::new(x_pos, screen_bounds.min.y - 50.0),

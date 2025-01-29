@@ -16,6 +16,7 @@ use bubble_collapse::plugins::{
     physics::PhysicsPlugin,
     interaction::InteractionPlugin,
     ui::UiPlugin,
+    cache::CachePlugin,
 };
 use winit::window::Icon;
 
@@ -38,6 +39,7 @@ fn main() {
         .add_plugins(FramepacePlugin)
         .add_plugins(CameraPlugin)
         .add_plugins(UiPlugin)
+        .add_plugins(CachePlugin)
         .add_plugins(GameStatesPlugin)
         .add_plugins(StatsPlugin)
         .add_plugins(BubblesPlugin)
