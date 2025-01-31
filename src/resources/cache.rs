@@ -10,3 +10,8 @@ pub struct MeshCache {
 pub struct FontCache {
     pub coolvetica_rg: Handle<Font>,
 }
+
+#[derive(Resource, Debug, Default, Clone)]
+pub struct AudioCache {
+    pub bubble_pop: Handle<AudioSource>,
+}

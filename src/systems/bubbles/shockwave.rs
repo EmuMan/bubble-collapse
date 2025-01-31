@@ -1,20 +1,25 @@
 use std::f32::consts::PI;
 use std::time::Duration;
 
+use bevy::audio::PlaybackMode;
 use bevy::prelude::*;
 use bevy_rand::prelude::{GlobalEntropy, WyRand};
 use rand_core::RngCore;
 
 use crate::components::bubbles::*;
 use crate::components::physics::Collider;
+use crate::resources::audio::AudioLimiter;
 use crate::resources::bubbles::*;
-use crate::resources::cache::MeshCache;
-use crate::util::ActionTimer;
+use crate::resources::cache::{MeshCache, AudioCache};
+use crate::util::{self, ActionTimer};
 
 pub fn spawn_shockwaves(
     mut commands: Commands,
     mesh_cache: Res<MeshCache>,
+    audio_cache: Res<AudioCache>,
+    mut audio_limiter: ResMut<AudioLimiter>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut random: ResMut<GlobalEntropy<WyRand>>,
     mut bubble_destroyed_event: EventReader<BubbleDestroyedEvent>,
 ) {
     for event in bubble_destroyed_event.read() {
@@ -23,7 +28,10 @@ pub fn spawn_shockwaves(
                 spawn_normal_shockwave(
                     &mut commands,
                     &mesh_cache,
+                    &audio_cache,
+                    &mut audio_limiter,
                     &mut materials,
+                    &mut random,
                     event.position,
                     event.radius,
                     event.color,
@@ -73,9 +81,12 @@ pub fn spawn_shockwaves(
 }
 
 fn spawn_normal_shockwave(
-    commands: &mut Commands,
+    mut commands: &mut Commands,
     mesh_cache: &MeshCache,
+    audio_cache: &AudioCache,
+    audio_limiter: &mut AudioLimiter,
     materials: &mut Assets<ColorMaterial>,
+    random: &mut GlobalEntropy<WyRand>,
     position: Vec2,
     radius: f32,
     color: Color,
@@ -94,6 +105,16 @@ fn spawn_normal_shockwave(
             ..Default::default()
         },
     });
+
+    audio_limiter.play_if_allowed(
+        &mut commands,
+        audio_cache.bubble_pop.clone(),
+        PlaybackSettings {
+            speed: util::random_f32(random.next_u64(), 0.7, 1.3),
+            mode: PlaybackMode::Despawn,
+            ..default()
+        },
+    );
 }
 
 fn spawn_mega_shockwave(
@@ -277,9 +298,10 @@ pub fn spawn_scatter_shot_shockwaves(
         };
 
         for _ in 0..to_spawn {
-            let angle = random.next_u32() as f32 / 1_000.0 % (PI * 2.0);
+            let angle = util::random_f32(random.next_u64(), 0.0, PI * 2.0);
             let direction = Vec2::new(angle.cos(), angle.sin());
-            let radius = spawner.radius + random.next_u32() as f32 / 1_000.0 % spawner.variation;
+            let (min, max) = (spawner.radius - spawner.variation, spawner.radius + spawner.variation);
+            let radius = util::random_f32(random.next_u64(), min, max);
             let position = spawner_transform.translation + (direction * radius).extend(0.0);
             let mut color = spawner.shockwave_color.clone();
             color.set_alpha(0.99);

@@ -9,6 +9,7 @@ use rand_core::RngCore;
 use crate::components::bubbles::*;
 use crate::resources::bubbles::*;
 use crate::resources::cache::MeshCache;
+use crate::util;
 use crate::util::get_viewport_bounds;
 use crate::util::ActionTimer;
 
@@ -37,7 +38,7 @@ pub fn spawn_bubbles(
     mesh_cache: Res<MeshCache>,
     mut spawn_timer: ResMut<BubbleSpawnTimer>,
     time: Res<Time>,
-    mut rng: ResMut<GlobalEntropy<WyRand>>,
+    mut random: ResMut<GlobalEntropy<WyRand>>,
     chances: Res<BubbleChances>,
     window_query: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
@@ -51,10 +52,9 @@ pub fn spawn_bubbles(
     let to_spawn = spawn_timer.action_timer.tick(time.delta()).unwrap_or(0);
 
     for _ in 0..to_spawn {
-        let x_pos = rng.next_u32() as f32 / 500.0 % (screen_bounds.max.x - screen_bounds.min.x)
-            + screen_bounds.min.x;
-        let y_vel = rng.next_u32() as f32 % 100.0 + 50.0;
-        let bubble_type = chances.random_sample(rng.next_u32());
+        let x_pos = util::random_f32(random.next_u64(), screen_bounds.min.x, screen_bounds.max.x);
+        let y_vel = util::random_f32(random.next_u64(), 50.0, 150.0);
+        let bubble_type = chances.random_sample(random.next_u32());
 
         commands.spawn(BubbleBundle::from_type(
             &mesh_cache,

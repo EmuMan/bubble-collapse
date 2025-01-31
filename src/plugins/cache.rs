@@ -11,9 +11,11 @@ impl Plugin for CachePlugin {
         app
             .init_resource::<MeshCache>()
             .init_resource::<FontCache>()
+            .init_resource::<AudioCache>()
             .add_systems(Startup, (
                 init_mesh_cache,
                 init_font_cache,
+                init_audio_cache,
             ));
     }
 

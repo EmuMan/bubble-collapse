@@ -163,3 +163,8 @@ pub fn get_viewport_bounds(
         max: Vec2::new(bottom_right_world_pos.x, top_left_world_pos.y),
     })
 }
+
+pub fn random_f32(rng: u64, min: f32, max: f32) -> f32 {
+    let norm = rng as f32 / u64::MAX as f32;
+    min + norm * (max - min)
+}

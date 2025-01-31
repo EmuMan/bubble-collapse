@@ -5,3 +5,4 @@ pub mod interaction;
 pub mod ui;
 pub mod stats;
 pub mod cache;
+pub mod audio;

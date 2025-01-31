@@ -17,6 +17,7 @@ use bubble_collapse::plugins::{
     interaction::InteractionPlugin,
     ui::UiPlugin,
     cache::CachePlugin,
+    audio::AudioPlugin,
 };
 use winit::window::Icon;
 
@@ -45,6 +46,7 @@ fn main() {
         .add_plugins(BubblesPlugin)
         .add_plugins(PhysicsPlugin)
         .add_plugins(InteractionPlugin)
+        .add_plugins(AudioPlugin)
         .run();
 }
 
