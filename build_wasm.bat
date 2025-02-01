@@ -38,30 +38,10 @@ if errorlevel 1 (
 )
 
 :: Step 4: Create a basic index.html file
-echo Creating index.html...
-(
-    echo ^<!DOCTYPE html^>
-    echo ^<html lang="en"^>
-    echo ^<head^>
-    echo     ^<meta charset="UTF-8"^>
-    echo     ^<meta name="viewport" content="width=device-width, initial-scale=1.0"^>
-    echo     ^<title^>%1^</title^>
-    echo ^</head^>
-    echo ^<body^>
-    echo     ^<script type="module"^>
-    echo         import init from './%1.js';
-    echo         init^(^).catch^(^(error^) ^=^> {
-    echo             if ^(!error.message.startsWith^("Using exceptions for control flow, don't mind me. This isn't actually an error!"^)^) {
-    echo                 throw error;
-    echo             }
-    echo         }^);
-    echo     ^</script^>
-    echo ^</body^>
-    echo ^</html^>
-) > "%OUT_DIR%\index.html"
-
+echo Copying index.html...
+copy .\index.html %OUT_DIR%\index.html
 if errorlevel 1 (
-    echo Error: Failed to create index.html.
+    echo Error: Failed to copy index.html.
     exit /b 1
 )
 
