@@ -24,4 +24,10 @@ pub fn init_audio_cache(
 ) {
     audio_cache.bubble_pop = asset_server.load("sfx/sarooptech_bubble_pop.ogg");
     audio_limiter.set_limit(audio_cache.bubble_pop.clone(), 5);
+    audio_cache.bubble_beam = asset_server.load("sfx/beam.ogg");
+    audio_limiter.set_limit(audio_cache.bubble_beam.clone(), 8);
+    audio_cache.bubble_explosion = asset_server.load("sfx/explosion.ogg");
+    audio_limiter.set_limit(audio_cache.bubble_explosion.clone(), 5);
+    audio_cache.bubble_black_hole = asset_server.load("sfx/black_hole.ogg");
+    audio_limiter.set_limit(audio_cache.bubble_black_hole.clone(), 3);
 }

@@ -38,7 +38,7 @@ impl AudioLimiter {
         audio: Handle<AudioSource>,
         playback_settings: PlaybackSettings,
     ) -> Option<EntityCommands<'a>> {
-        let limit = self.get_limit(audio.clone()).unwrap_or(0);
+        let limit = self.get_limit(audio.clone()).unwrap_or(u32::MAX);
 
         {
             let count = self.current_counts.entry(audio.clone()).or_insert(0);

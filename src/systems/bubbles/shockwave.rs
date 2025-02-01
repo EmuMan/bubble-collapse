@@ -1,7 +1,7 @@
 use std::f32::consts::PI;
 use std::time::Duration;
 
-use bevy::audio::PlaybackMode;
+use bevy::audio::{PlaybackMode, Volume};
 use bevy::prelude::*;
 use bevy_rand::prelude::{GlobalEntropy, WyRand};
 use rand_core::RngCore;
@@ -41,7 +41,10 @@ pub fn spawn_shockwaves(
                 spawn_mega_shockwave(
                     &mut commands,
                     &mesh_cache,
+                    &audio_cache,
+                    &mut audio_limiter,
                     &mut materials,
+                    &mut random,
                     event.position,
                     event.radius,
                     event.color,
@@ -60,7 +63,10 @@ pub fn spawn_shockwaves(
                 spawn_beam(
                     &mut commands,
                     &mesh_cache,
+                    &audio_cache,
+                    &mut audio_limiter,
                     &mut materials,
+                    &mut random,
                     event.position,
                     50.0,
                     event.color,
@@ -70,7 +76,10 @@ pub fn spawn_shockwaves(
                 spawn_black_hole(
                     &mut commands,
                     &mesh_cache,
+                    &audio_cache,
+                    &mut audio_limiter,
                     &mut materials,
+                    &mut random,
                     event.position,
                     300.0,
                     event.color,
@@ -118,9 +127,12 @@ fn spawn_normal_shockwave(
 }
 
 fn spawn_mega_shockwave(
-    commands: &mut Commands,
+    mut commands: &mut Commands,
     mesh_cache: &MeshCache,
+    audio_cache: &AudioCache,
+    audio_limiter: &mut AudioLimiter,
     materials: &mut Assets<ColorMaterial>,
+    random: &mut GlobalEntropy<WyRand>,
     position: Vec2,
     radius: f32,
     color: Color,
@@ -139,12 +151,26 @@ fn spawn_mega_shockwave(
             ..Default::default()
         },
     });
+
+    audio_limiter.play_if_allowed(
+        &mut commands,
+        audio_cache.bubble_explosion.clone(),
+        PlaybackSettings {
+            speed: util::random_f32(random.next_u64(), 0.9, 1.1),
+            mode: PlaybackMode::Despawn,
+            volume: Volume::new(0.5),
+            ..default()
+        },
+    );
 }
 
 fn spawn_black_hole(
-    commands: &mut Commands,
+    mut commands: &mut Commands,
     mesh_cache: &MeshCache,
+    audio_cache: &AudioCache,
+    audio_limiter: &mut AudioLimiter,
     materials: &mut Assets<ColorMaterial>,
+    random: &mut GlobalEntropy<WyRand>,
     position: Vec2,
     max_radius: f32,
     color: Color,
@@ -163,6 +189,16 @@ fn spawn_black_hole(
             ..Default::default()
         },
     });
+
+    audio_limiter.play_if_allowed(
+        &mut commands,
+        audio_cache.bubble_black_hole.clone(),
+        PlaybackSettings {
+            speed: util::random_f32(random.next_u64(), 0.9, 1.1),
+            mode: PlaybackMode::Despawn,
+            ..default()
+        },
+    );
 }
 
 fn spawn_scatter_shot(
@@ -189,9 +225,12 @@ fn spawn_scatter_shot(
 }
 
 fn spawn_beam(
-    commands: &mut Commands,
+    mut commands: &mut Commands,
     mesh_cache: &MeshCache,
+    audio_cache: &AudioCache,
+    audio_limiter: &mut AudioLimiter,
     materials: &mut Assets<ColorMaterial>,
+    random: &mut GlobalEntropy<WyRand>,
     position: Vec2,
     width: f32,
     color: Color,
@@ -207,6 +246,17 @@ fn spawn_beam(
         transform: Transform::from_translation(position.extend(-(position.x / 1000.0 + position.y)))
             .with_scale(Vec3::new(0.0, 1.0, 1.0)),
     });
+
+    audio_limiter.play_if_allowed(
+        &mut commands,
+        audio_cache.bubble_beam.clone(),
+        PlaybackSettings {
+            speed: util::random_f32(random.next_u64(), 0.9, 1.1),
+            mode: PlaybackMode::Despawn,
+            volume: Volume::new(0.8),
+            ..default()
+        },
+    );
 }
 
 pub fn expand_shockwaves(

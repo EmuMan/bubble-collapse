@@ -14,4 +14,7 @@ pub struct FontCache {
 #[derive(Resource, Debug, Default, Clone)]
 pub struct AudioCache {
     pub bubble_pop: Handle<AudioSource>,
+    pub bubble_beam: Handle<AudioSource>,
+    pub bubble_explosion: Handle<AudioSource>,
+    pub bubble_black_hole: Handle<AudioSource>,
 }
